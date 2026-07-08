@@ -1121,17 +1121,86 @@ button {
   text-align: right;
 }
 
-/* 历史详情中的图片不要太大 */
-.history-detail-page img {
-  max-width: 80px !important;
-  max-height: 90px !important;
+/* 历史详情折叠卡片 */
+.hd-wrong-collapsed {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
-.history-detail-page .quiz-sign-img {
-  width: auto;
-  min-height: auto;
-  margin-bottom: 8px;
+.hd-wrong-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
+
+.hd-wrong-answer {
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 展开区 */
+.hd-expanded-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.hd-expanded-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hd-nav-btn {
+  padding: 8px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--card-bg);
+  color: var(--primary);
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.hd-nav-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hd-nav-pos {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.hd-close-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+/* 历史详情中的图片约束 */
 
 .hd-stat span {
   font-weight: 700;

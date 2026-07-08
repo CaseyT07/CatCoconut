@@ -571,80 +571,24 @@ function showHistoryDetail(index) {
     for (var wi = 0; wi < h.wrongItems.length; wi++) {
       var wiData = h.wrongItems[wi];
       if (typeof wiData === "string") {
-        html += '<div class="hd-wrong-item"><span>' + wiData + '</span></div>';
+        html += '<div class="hd-wrong-collapsed" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')">' +
+          '<div class="hd-wrong-name">' + wiData + '</div>' +
+          '<div class="hd-expand-hint">点击查看详情</div></div>';
       } else {
-        // 构建完整答题场景（和初次答题错误时一模一样）
-        var qCard = "";
-
-        if (wiData.signId) {
-          var sign = null;
-          for (var si = 0; si < TRAFFIC_SIGNS.length; si++) {
-            if (TRAFFIC_SIGNS[si].id === wiData.signId) { sign = TRAFFIC_SIGNS[si]; break; }
-          }
-          if (sign) {
-            // 生成选项
-            var others = TRAFFIC_SIGNS.filter(function (s) { return s.id !== sign.id; });
-            var wrongs = shuffle(others).slice(0, 3);
-            var opts = shuffle([
-              { name: sign.name, isCorrect: true },
-              { name: wrongs[0].name, isCorrect: false },
-              { name: wrongs[1].name, isCorrect: false },
-              { name: wrongs[2].name, isCorrect: false }
-            ]);
-            var signImg = sign.img
-              ? '<img src="' + sign.img + '" alt="" style="max-width:120px;max-height:100px;">'
-              : (sign.svg || "");
-            qCard =
-              '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);margin-bottom:8px;">' +
-                '<div class="quiz-sign-img">' + signImg + '</div>' +
-                '<p class="quiz-hint">这是什么交通标志？</p>' +
-                '<div class="quiz-options">';
-            for (var oi = 0; oi < opts.length; oi++) {
-              var oc = "quiz-option disabled";
-              if (opts[oi].isCorrect) oc += " show-correct";
-              if (!opts[oi].isCorrect && opts[oi].name === wiData.userAnswer) oc += " wrong";
-              qCard += '<button class="' + oc + '">' + opts[oi].name + '</button>';
-            }
-            qCard += '</div>' +
-              '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
-                '<div class="exp-header">✗ 回答错误</div>' +
-                '<div class="exp-body">' + sign.description + '</div>' +
-              '</div></div>';
-          }
-        } else if (wiData.knowledgeId) {
-          var kq = null;
-          for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
-            if (KNOWLEDGE_QUESTIONS[ki].id === wiData.knowledgeId) { kq = KNOWLEDGE_QUESTIONS[ki]; break; }
-          }
-          if (kq) {
-            var kqImg = (kq.type === "image" && kq.image) ? '<div style="margin:0 auto;max-width:120px;">' + kq.image + '</div>' : "";
-            var kqOpts = [];
-            for (var oi2 = 0; oi2 < kq.options.length; oi2++) {
-              kqOpts.push({ name: kq.options[oi2], isCorrect: (oi2 === kq.answer) });
-            }
-            qCard =
-              '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);margin-bottom:8px;">' +
-                kqImg +
-                '<p class="quiz-hint">' + kq.question + '</p>' +
-                '<div class="quiz-options">';
-            for (var oi3 = 0; oi3 < kqOpts.length; oi3++) {
-              var oc2 = "quiz-option disabled";
-              if (kqOpts[oi3].isCorrect) oc2 += " show-correct";
-              if (!kqOpts[oi3].isCorrect && kqOpts[oi3].name === wiData.userAnswer) oc2 += " wrong";
-              qCard += '<button class="' + oc2 + '">' + kqOpts[oi3].name + '</button>';
-            }
-            qCard += '</div>' +
-              (kq.explanation ?
-                '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
-                  '<div class="exp-header">✗ 回答错误</div>' +
-                  '<div class="exp-body">' + kq.explanation + '</div>' +
-                '</div>' : '') +
-              '</div>';
-          }
-        }
-        html += (qCard || '<div class="hd-wrong-item"><span>' + (wiData.name || "") + '</span></div>');
+        // 折叠状态：只显示题干 + 答案摘要
+        html +=
+          '<div class="hd-wrong-collapsed" id="hd_collapsed_' + wi + '" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')">' +
+            '<div class="hd-wrong-name">' + (wiData.name || wiData.question || "") + '</div>' +
+            '<div class="hd-wrong-answer">' +
+              (wiData.userAnswer ? '<span style="color:#dc2626">✗ 你答了: ' + wiData.userAnswer + '</span>' : '') +
+              (wiData.correctAnswer ? '<span style="color:#16a34a;margin-left:8px;">✓ 答案: ' + wiData.correctAnswer + '</span>' : '') +
+            '</div>' +
+            '<div class="hd-expand-hint">点击查看详情</div>' +
+          '</div>';
       }
     }
+    // 展开区（默认隐藏）
+    html += '<div class="hd-expanded-zone" id="hdExpandedZone" style="display:none"></div>';
     html += '</div>';
   }
 
@@ -652,6 +596,147 @@ function showHistoryDetail(index) {
 
   document.getElementById("quizContainer").innerHTML = html;
   window.scrollTo(0, 0);
+}
+
+// 当前展开的错题状态
+var _hdState = { historyIndex: null, wrongIndex: 0, total: 0 };
+
+function expandWrongDetail(historyIndex, wi) {
+  var history = getQuizHistory();
+  var h = history[historyIndex];
+  if (!h || !h.wrongItems) return;
+  _hdState = { historyIndex: historyIndex, wrongIndex: wi, total: h.wrongItems.length };
+  renderExpandedWrong(wi);
+}
+
+function renderExpandedWrong(wi) {
+  var history = getQuizHistory();
+  var h = history[_hdState.historyIndex];
+  if (!h || !h.wrongItems) return;
+  var wiData = h.wrongItems[wi];
+  if (!wiData || typeof wiData === "string") return;
+
+  var isFirst = wi <= 0;
+  var isLast = wi >= _hdState.total - 1;
+  var qCard = "";
+
+  if (wiData.signId) {
+    var sign = null;
+    for (var si = 0; si < TRAFFIC_SIGNS.length; si++) {
+      if (TRAFFIC_SIGNS[si].id === wiData.signId) { sign = TRAFFIC_SIGNS[si]; break; }
+    }
+    if (sign) {
+      var others = TRAFFIC_SIGNS.filter(function (s) { return s.id !== sign.id; });
+      var wrongs = shuffle(others).slice(0, 3);
+      var opts = shuffle([
+        { name: sign.name, isCorrect: true },
+        { name: wrongs[0].name, isCorrect: false },
+        { name: wrongs[1].name, isCorrect: false },
+        { name: wrongs[2].name, isCorrect: false }
+      ]);
+      var signImg = sign.img
+        ? '<img src="' + sign.img + '" alt="" style="max-width:100px;max-height:90px;">'
+        : (sign.svg || "");
+      qCard =
+        '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);">' +
+          '<div class="quiz-sign-img">' + signImg + '</div>' +
+          '<p class="quiz-hint">这是什么交通标志？</p>' +
+          '<div class="quiz-options">';
+      for (var oi = 0; oi < opts.length; oi++) {
+        var oc = "quiz-option disabled";
+        if (opts[oi].isCorrect) oc += " show-correct";
+        if (!opts[oi].isCorrect && opts[oi].name === wiData.userAnswer) oc += " wrong";
+        qCard += '<button class="' + oc + '">' + opts[oi].name + '</button>';
+      }
+      qCard += '</div>' +
+        '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
+          '<div class="exp-header">✗ 回答错误</div>' +
+          '<div class="exp-body">' + sign.description + '</div>' +
+        '</div></div>';
+    }
+  } else if (wiData.knowledgeId) {
+    var kq = null;
+    for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
+      if (KNOWLEDGE_QUESTIONS[ki].id === wiData.knowledgeId) { kq = KNOWLEDGE_QUESTIONS[ki]; break; }
+    }
+    if (kq) {
+      var kqImg = (kq.type === "image" && kq.image)
+        ? '<div style="margin:0 auto;max-width:90px;max-height:100px;">' + kq.image + '</div>'
+        : "";
+      qCard =
+        '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);">' +
+          kqImg +
+          '<p class="quiz-hint">' + kq.question + '</p>' +
+          '<div class="quiz-options">';
+      for (var oi2 = 0; oi2 < kq.options.length; oi2++) {
+        var oc2 = "quiz-option disabled";
+        if (oi2 === kq.answer) oc2 += " show-correct";
+        if (oi2 !== kq.answer && kq.options[oi2] === wiData.userAnswer) oc2 += " wrong";
+        qCard += '<button class="' + oc2 + '">' + kq.options[oi2] + '</button>';
+      }
+      qCard += '</div>' +
+        (kq.explanation ?
+          '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
+            '<div class="exp-header">✗ 回答错误</div>' +
+            '<div class="exp-body">' + kq.explanation + '</div>' +
+          '</div>' : '') +
+        '</div>';
+    }
+  }
+
+  // 隐藏所有折叠卡片
+  var collapsed = document.querySelectorAll(".hd-wrong-collapsed");
+  for (var c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "none"; }
+
+  var zone = document.getElementById("hdExpandedZone");
+  zone.style.display = "block";
+  zone.innerHTML =
+    '<div class="hd-expanded-card" id="hdExpandedCard">' +
+      '<div class="hd-expanded-nav">' +
+        '<button class="hd-nav-btn" ' + (isFirst ? 'disabled' : '') + ' onclick="navigateWrong(-1)">◀ 上一题</button>' +
+        '<span class="hd-nav-pos">' + (wi + 1) + ' / ' + _hdState.total + '</span>' +
+        '<button class="hd-nav-btn" ' + (isLast ? 'disabled' : '') + ' onclick="navigateWrong(1)">下一题 ▶</button>' +
+      '</div>' +
+      qCard +
+      '<button class="hd-close-btn" onclick="closeWrongExpand()">收起 ▲</button>' +
+    '</div>';
+  zone.scrollIntoView({ behavior: "smooth" });
+
+  // 绑定滑动
+  setupHdSwipe();
+}
+
+function navigateWrong(delta) {
+  var newIdx = _hdState.wrongIndex + delta;
+  if (newIdx < 0 || newIdx >= _hdState.total) return;
+  _hdState.wrongIndex = newIdx;
+  renderExpandedWrong(newIdx);
+}
+
+function closeWrongExpand() {
+  _hdState = { historyIndex: null, wrongIndex: 0, total: 0 };
+  var zone = document.getElementById("hdExpandedZone");
+  if (zone) zone.style.display = "none";
+  var collapsed = document.querySelectorAll(".hd-wrong-collapsed");
+  for (var c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "block"; }
+}
+
+function setupHdSwipe() {
+  var card = document.getElementById("hdExpandedCard");
+  if (!card) return;
+  var startX = 0, startY = 0;
+  card.addEventListener("touchstart", function (e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { once: true });
+  card.addEventListener("touchend", function (e) {
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < -30) navigateWrong(1);
+      else if (dx > 30) navigateWrong(-1);
+    }
+  }, { once: true });
 }
 
 function clearQuizHistory() {
