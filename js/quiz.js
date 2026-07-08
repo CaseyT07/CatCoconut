@@ -626,16 +626,24 @@ function renderExpandedWrong(wi) {
       if (TRAFFIC_SIGNS[si].id === wiData.signId) { sign = TRAFFIC_SIGNS[si]; break; }
     }
     if (sign) {
-      var others = TRAFFIC_SIGNS.filter(function (s) { return s.id !== sign.id; });
-      var wrongs = shuffle(others).slice(0, 3);
+      // 使用原题选项（从 data.js 查找其他标志名称），确保用户错误答案在列表中
+      var allNames = [];
+      for (var ai = 0; ai < TRAFFIC_SIGNS.length; ai++) {
+        if (TRAFFIC_SIGNS[ai].id !== sign.id) allNames.push(TRAFFIC_SIGNS[ai].name);
+      }
+      var shuffledNames = shuffle(allNames);
       var opts = shuffle([
         { name: sign.name, isCorrect: true },
-        { name: wrongs[0].name, isCorrect: false },
-        { name: wrongs[1].name, isCorrect: false },
-        { name: wrongs[2].name, isCorrect: false }
+        { name: shuffledNames[0], isCorrect: false },
+        { name: shuffledNames[1], isCorrect: false },
+        { name: shuffledNames[2], isCorrect: false }
       ]);
+      // 确保用户错误答案在列表中
+      if (wiData.userAnswer && !opts.some(function(o) { return o.name === wiData.userAnswer; })) {
+        opts[3] = { name: wiData.userAnswer, isCorrect: false };
+      }
       var signImg = sign.img
-        ? '<img src="' + sign.img + '" alt="" style="max-width:100px;max-height:90px;">'
+        ? '<img src="' + sign.img + '" alt="" style="max-width:70px;max-height:80px;">'
         : (sign.svg || "");
       qCard =
         '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);">' +
@@ -661,7 +669,7 @@ function renderExpandedWrong(wi) {
     }
     if (kq) {
       var kqImg = (kq.type === "image" && kq.image)
-        ? '<div style="margin:0 auto;max-width:90px;max-height:100px;">' + kq.image + '</div>'
+        ? '<div class="quiz-sign-img" style="min-height:auto;margin-bottom:8px;">' + kq.image + '</div>'
         : "";
       qCard =
         '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);">' +
@@ -884,7 +892,7 @@ function renderQuestion() {
     // 知识题 — 可能有图片（交警手势）
     var kq = q.question;
     if (kq.type === "image" && kq.image) {
-      questionMedia = '<div style="max-width:120px;max-height:140px;margin:0 auto;">' + kq.image + '</div>';
+      questionMedia = '<div class="quiz-sign-img" style="min-height:auto;margin-bottom:10px;">' + kq.image + '</div>';
     }
     questionText = kq.question;
     var kcat = KNOWLEDGE_CATEGORIES[kq.category];
@@ -1174,7 +1182,13 @@ function renderQuizResult() {
     var qq = quizState.questions[i];
     if (qq.userAnswer && !qq.userAnswer.isCorrect) {
       if (qq.type === "sign") {
-        wrongItems.push({ name: qq.sign.name, type: "sign", signId: qq.sign.id });
+        wrongItems.push({
+          name: qq.sign.name,
+          type: "sign",
+          signId: qq.sign.id,
+          correctAnswer: qq.sign.name,
+          userAnswer: qq.userAnswer ? qq.userAnswer.name : ""
+        });
       } else if (qq.type === "knowledge") {
         wrongItems.push({
           name: qq.question.question.substring(0, 40),
