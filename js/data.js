@@ -1434,7 +1434,7 @@ const TRAFFIC_SIGNS = [
     </svg>`
   },
   {
-    id: "a05", category: "auxiliary", name: "除公交车外",
+    id: "a05", category: "auxiliary", name: "公交车除外",
     img: "img/signs/a05.png",
     description: "标示上方主标志的禁令不适用于公交车，即公交车可以豁免此限制。",
     tip: "公交车和特种车辆（救护车、消防车等）通常享有某些禁行路段的豁免权。",
@@ -1442,7 +1442,7 @@ const TRAFFIC_SIGNS = [
     weight: 1,
     svg: `<svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
       <rect x="2" y="2" width="116" height="36" rx="4" fill="white" stroke="#111" stroke-width="2"/>
-      <text x="60" y="27" text-anchor="middle" font-size="14" fill="#111" font-family="sans-serif">除公交车外</text>
+      <text x="60" y="27" text-anchor="middle" font-size="14" fill="#111" font-family="sans-serif">公交车除外</text>
     </svg>`
   },
   {

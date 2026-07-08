@@ -1050,6 +1050,117 @@ button {
 }
 
 /* ============================================
+   答后知识点卡片
+   ============================================ */
+.quiz-explanation-card {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--radius);
+  text-align: left;
+  animation: fadeIn 0.3s ease;
+}
+
+.quiz-explanation-card.correct-exp {
+  background: var(--success-light);
+  border-left: 4px solid var(--success);
+}
+
+.quiz-explanation-card.wrong-exp {
+  background: var(--danger-light);
+  border-left: 4px solid var(--danger);
+}
+
+.exp-header {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.correct-exp .exp-header { color: var(--success); }
+.wrong-exp .exp-header { color: var(--danger); }
+
+.exp-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.exp-swipe-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ============================================
+   答题导航栏
+   ============================================ */
+.quiz-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  gap: 8px;
+}
+
+.quiz-nav-btn {
+  padding: 10px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--card-bg);
+  color: var(--primary);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.2s;
+}
+
+.quiz-nav-btn:active {
+  background: var(--primary-light);
+  transform: scale(0.96);
+}
+
+.quiz-nav-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.quiz-nav-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.countdown-svg circle:last-child {
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+/* ============================================
+   错题计数 & 持久性提示
+   ============================================ */
+.wrong-count-badge {
+  display: inline-block;
+  font-size: 12px;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.wrong-persistence-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--warning-light);
+  border-radius: 8px;
+}
+
+/* ============================================
    响应式微调（平板及以上）
    ============================================ */
 @media (min-width: 640px) {

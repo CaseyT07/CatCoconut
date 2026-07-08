@@ -8,6 +8,12 @@ var currentSearch = "";
 // ========== Tab 导航 ==========
 
 function switchTab(tab) {
+  // 切走答题标签前自动保存进度
+  if (quizState.questions.length > 0 && quizState.currentIndex > 0
+      && quizState.currentIndex < quizState.questions.length) {
+    saveQuizState();
+  }
+
   // Update tab buttons
   var tabs = document.querySelectorAll(".tab-item");
   for (var i = 0; i < tabs.length; i++) {
@@ -31,7 +37,7 @@ function switchTab(tab) {
   // Trigger page-specific rendering
   if (tab === "quiz") {
     var savedState = getSavedQuizState();
-    if (savedState && savedState.questionIds && savedState.currentIndex < savedState.questionIds.length) {
+    if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
       showResumeDialog(savedState);
     } else {
       renderQuizIntro();
