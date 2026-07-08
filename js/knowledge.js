@@ -361,7 +361,7 @@ const KNOWLEDGE_QUESTIONS = [
     explanation: "等红灯时车辆仍处于行驶状态，使用手机属于妨碍安全驾驶的行为。"
   },
   {
-    id: "tl06", category: "traffic_lights", type: "text",
+    id: "rw11", category: "right_of_way", type: "text",
     question: "在无交通信号灯的T型交叉路口，直行车辆和转弯车辆谁优先？",
     options: [
       "直行优先",
@@ -369,8 +369,8 @@ const KNOWLEDGE_QUESTIONS = [
       "右侧来车优先",
       "大型车辆优先",
     ],
-    answer: 2,
-    explanation: "在无信号灯的路口，两车同时到达时，右侧来车优先通行权。"
+    answer: 0,
+    explanation: "根据《道路交通安全法实施条例》第52条：转弯的机动车让直行的车辆先行。无论左转还是右转，都必须让行直行车辆。让右原则仅适用于两车路权相同时。"
   },
   {
     id: "tl07", category: "traffic_lights", type: "text",
@@ -866,15 +866,15 @@ const KNOWLEDGE_QUESTIONS = [
   },
   {
     id: "ew06", category: "expressway", type: "text",
-    question: "连续驾驶多长时间后应到服务区休息？",
+    question: "根据《道路交通安全法实施条例》，连续驾驶超过多长时间必须停车休息？",
     options: [
-      "连续驾驶3小时，休息10分钟",
-      "连续驾驶2小时（或感到疲劳时），休息15-20分钟",
-      "连续驾驶4小时，休息5分钟",
-      "连续驾驶5小时，休息30分钟",
+      "连续驾驶2小时，休息不少于10分钟",
+      "连续驾驶4小时，休息不少于20分钟",
+      "连续驾驶3小时，休息不少于15分钟",
+      "连续驾驶5小时，休息不少于30分钟",
     ],
     answer: 1,
-    explanation: "建议连续驾驶不超过2小时就应休息。疲劳征兆：打哈欠、视线模糊、记忆模糊。"
+    explanation: "根据《道路交通安全法实施条例》第62条：连续驾驶机动车超过4小时必须停车休息，且休息时间不少于20分钟。这是强制规定，非建议。安全驾驶建议感到疲劳随时休息。"
   },
   {
     id: "ew07", category: "expressway", type: "text",
