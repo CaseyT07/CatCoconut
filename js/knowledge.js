@@ -14,15 +14,20 @@ const KNOWLEDGE_CATEGORIES = {
   safety:        { id: "safety",        name: "🛟 安全常识", icon: "🛟" },
 };
 
+// 手势图片：
+// 当前用 emoji 占位。下载真实图片存到 img/knowledge/hand_signals/ 后自动显示
+// 下载清单见 img/knowledge/hand_signals/DOWNLOAD_LIST.txt
+// 图片就位后把下面 HAND_SIGNAL_SVGS 改为 <img src="..."> 即可
+
 const HAND_SIGNAL_SVGS = {
-  stop: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="50" x2="110" y2="30" stroke="#1a237e" stroke-width="5"/></svg>`,
-  straight: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="44" x2="112" y2="20" stroke="#1a237e" stroke-width="5"/><line x1="60" y1="50" x2="60" y2="80" stroke="#1a237e" stroke-width="4"/></svg>`,
-  left_turn: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="50" x2="110" y2="40" stroke="#1a237e" stroke-width="5"/><line x1="25" y1="60" x2="55" y2="44" stroke="#1a237e" stroke-width="5"/></svg>`,
-  right_turn: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="25" y1="44" x2="55" y2="40" stroke="#1a237e" stroke-width="5"/><line x1="82" y1="50" x2="110" y2="36" stroke="#1a237e" stroke-width="5"/></svg>`,
-  change_lane: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="50" x2="110" y2="40" stroke="#1a237e" stroke-width="5"/><line x1="25" y1="60" x2="55" y2="44" stroke="#1a237e" stroke-width="5"/></svg>`,
-  slow_down: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="52" x2="108" y2="36" stroke="#1a237e" stroke-width="5"/><line x1="22" y1="70" x2="52" y2="52" stroke="#1a237e" stroke-width="5"/></svg>`,
-  pull_over: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="50" x2="112" y2="30" stroke="#1a237e" stroke-width="5"/><line x1="25" y1="60" x2="55" y2="44" stroke="#1a237e" stroke-width="5"/></svg>`,
-  left_turn_wait: `<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="28" r="10" fill="#1a237e"/><rect x="55" y="38" width="10" height="28" rx="3" fill="#1a237e"/><rect x="38" y="66" width="44" height="46" rx="6" fill="#1a237e"/><line x1="82" y1="48" x2="112" y2="34" stroke="#1a237e" stroke-width="5"/><line x1="82" y1="56" x2="72" y2="76" stroke="#1a237e" stroke-width="4"/></svg>`,
+  stop:            '<div style="font-size:56px;text-align:center;">🛑</div><div style="font-size:12px;color:#888;">停止信号</div>',
+  straight:        '<div style="font-size:56px;text-align:center;">⬆️</div><div style="font-size:12px;color:#888;">直行信号</div>',
+  left_turn:       '<div style="font-size:56px;text-align:center;">⬅️</div><div style="font-size:12px;color:#888;">左转弯信号</div>',
+  right_turn:      '<div style="font-size:56px;text-align:center;">➡️</div><div style="font-size:12px;color:#888;">右转弯信号</div>',
+  change_lane:     '<div style="font-size:56px;text-align:center;">↔️</div><div style="font-size:12px;color:#888;">变道信号</div>',
+  slow_down:       '<div style="font-size:56px;text-align:center;">🔻</div><div style="font-size:12px;color:#888;">减速慢行信号</div>',
+  pull_over:       '<div style="font-size:56px;text-align:center;">🅿️</div><div style="font-size:12px;color:#888;">靠边停车信号</div>',
+  left_turn_wait:  '<div style="font-size:56px;text-align:center;">↖️</div><div style="font-size:12px;color:#888;">左转弯待转信号</div>',
 };
 
 // 96 questions across 9 categories

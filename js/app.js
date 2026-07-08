@@ -36,12 +36,7 @@ function switchTab(tab) {
 
   // Trigger page-specific rendering
   if (tab === "quiz") {
-    var savedState = getSavedQuizState();
-    if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
-      showResumeDialog(savedState);
-    } else {
-      renderQuizIntro();
-    }
+    renderQuizIntro();
   } else if (tab === "wrong") {
     renderWrongPage();
   } else if (tab === "tips") {

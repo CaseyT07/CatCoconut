@@ -113,6 +113,13 @@ function getQuizHistory() {
 
 function saveQuizHistory(record) {
   var history = getQuizHistory();
+  // 去重：如果最近一条记录和当前同模式、同时间，跳过
+  if (history.length > 0) {
+    var last = history[0];
+    if (last.date === record.date && last.mode === record.mode && last.score === record.score) {
+      return;
+    }
+  }
   history.unshift(record);
   if (history.length > 50) history = history.slice(0, 50);
   try {
@@ -358,13 +365,36 @@ function discardAndStart() {
 // ========== 渲染刷题入口 ==========
 
 function renderQuizIntro() {
-  clearQuizState();
   QUIZ_MODE = null;
   var container = document.getElementById("quizContainer");
   var history = getQuizHistory();
+  var savedState = getSavedQuizState();
+  var hasSaved = savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length;
 
-  var html =
-    '<div class="quiz-intro">' +
+  var html = '<div class="quiz-intro">';
+
+  // 续答横幅（紧凑，不霸屏）
+  if (hasSaved) {
+    var sMode = savedState.mode === "comprehensive" ? "📚 综合知识" : (savedState.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
+    var sTotal = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
+    var sIdx = savedState.currentIndex;
+    html +=
+      '<div class="resume-banner">' +
+        '<div class="resume-banner-info">' +
+          '<div class="resume-banner-icon">📝</div>' +
+          '<div>' +
+            '<div class="resume-banner-title">未完成的答题 — ' + sMode + '</div>' +
+            '<div class="resume-banner-meta">已答 <b>' + sIdx + '</b> / ' + sTotal + ' 题 · 正确 <b>' + (savedState.correctCount || 0) + '</b> 题</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="resume-banner-actions">' +
+          '<button class="resume-btn" onclick="resumeQuiz()">继续</button>' +
+          '<button class="resume-discard-btn" onclick="discardAndStart()">放弃</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  html +=
       '<div class="quiz-intro-icon">✏️</div>' +
       '<h2>选择刷题模式</h2>';
 
@@ -530,7 +560,6 @@ function startWrongQuiz() {
   quizState.currentIndex = 0;
   quizState.correctCount = 0;
   quizState.wrongCount = 0;
-  quizState.answered = false;
   saveQuizState();
   renderQuestion();
 }
@@ -549,7 +578,6 @@ function startQuiz(mode) {
   quizState.currentIndex = 0;
   quizState.correctCount = 0;
   quizState.wrongCount = 0;
-  quizState.answered = false;
   saveQuizState();
   renderQuestion();
 }
@@ -563,7 +591,6 @@ function renderQuestion() {
   }
 
   saveQuizState();
-  quizState.answered = false;
 
   var q = quizState.questions[quizState.currentIndex];
   var total = quizState.questions.length;
@@ -613,16 +640,45 @@ function renderQuestion() {
       '<p class="quiz-hint">' + questionText + '</p>' +
       '<div class="quiz-options" id="quizOptions">';
 
+  var isAnswered = q.answered;
+
   for (var i = 0; i < q.options.length; i++) {
+    var optClass = "quiz-option";
+    if (isAnswered) {
+      optClass += " disabled";
+      if (q.options[i].isCorrect) optClass += " show-correct";
+      if (q.userAnswer && q.options[i].name === q.userAnswer.name && !q.options[i].isCorrect) optClass += " wrong";
+    }
     html +=
-      '<button class="quiz-option" data-idx="' + i + '" onclick="selectAnswer(' + i + ')">' +
+      '<button class="' + optClass + '" data-idx="' + i + '"' +
+      (isAnswered ? '' : ' onclick="selectAnswer(' + i + ')"') + '>' +
         q.options[i].name +
       '</button>';
+  }
+
+  html += '</div>';
+
+  // 已回答的题显示解释
+  if (isAnswered && q.userAnswer) {
+    var wasCorrect = q.userAnswer.isCorrect;
+    var exp = q.type === "sign" ? q.sign.description : (q.question ? q.question.explanation : "");
+    if (exp) {
+      html +=
+        '<div class="quiz-explanation-card ' + (wasCorrect ? 'correct-exp' : 'wrong-exp') + '">' +
+          '<div class="exp-header">' + (wasCorrect ? '✓ 回答正确！' : '✗ 回答错误') + '</div>' +
+          '<div class="exp-body">' + exp + '</div>' +
+        '</div>';
+    }
   }
 
   html += '</div></div>';
 
   document.getElementById("quizContainer").innerHTML = html;
+
+  // 已回答的题渲染导航栏（不倒计时）
+  if (isAnswered) {
+    setTimeout(function () { renderNavForAnswered(); }, 50);
+  }
 }
 
 // ========== 选择答案 ==========
@@ -631,11 +687,11 @@ var _autoTimer = null;       // 自动跳转计时器
 var _countdownInterval = null; // 倒计时更新
 
 function selectAnswer(idx) {
-  if (quizState.answered) return;
-  quizState.answered = true;
+  var q = quizState.questions[quizState.currentIndex];
+  if (q.answered) return;
+  q.answered = true;
   clearAutoAdvance();
 
-  var q = quizState.questions[quizState.currentIndex];
   var chosen = q.options[idx];
   q.userAnswer = chosen;
   var buttons = document.querySelectorAll("#quizOptions .quiz-option");
@@ -704,14 +760,47 @@ function showPostAnswer(isCorrect, explanation) {
     ? '<div class="quiz-explanation-card ' + (isCorrect ? 'correct-exp' : 'wrong-exp') + '">' +
         '<div class="exp-header">' + (isCorrect ? '✓ 回答正确！' : '✗ 回答错误') + '</div>' +
         '<div class="exp-body">' + explanation + '</div>' +
-        '<div class="exp-swipe-hint">← 滑动翻题 →</div>' +
       '</div>'
     : '';
 
-  card.innerHTML += expHtml + navHtml;
+  card.innerHTML += expHtml;
+
+  // 导航栏放在卡片外面，固定在底部
+  var container = document.getElementById("quizContainer");
+  var oldNav = document.getElementById("quizNavWrapper");
+  if (oldNav) oldNav.remove();
+  var navWrapper = document.createElement("div");
+  navWrapper.id = "quizNavWrapper";
+  navWrapper.innerHTML = navHtml;
+  container.appendChild(navWrapper);
 
   // 绑定滑动手势
   setupSwipe(card);
+}
+
+function renderNavForAnswered() {
+  // 已回答的题也渲染导航栏（不倒计时）
+  var total = quizState.questions.length;
+  var idx = quizState.currentIndex + 1;
+  var isLast = quizState.currentIndex >= total - 1;
+  var hasPrev = quizState.currentIndex > 0;
+
+  var navHtml =
+    '<div class="quiz-nav-bar">' +
+      '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
+      '<span class="quiz-nav-countdown" id="countdownRing">' +
+        '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>' +
+      '</span>' +
+      '<button class="quiz-nav-btn' + (isLast ? '' : '') + '" onclick="quizNavNext()"' + '>下一题 ▶</button>' +
+    '</div>';
+
+  var container = document.getElementById("quizContainer");
+  var oldNav = document.getElementById("quizNavWrapper");
+  if (oldNav) oldNav.remove();
+  var navWrapper = document.createElement("div");
+  navWrapper.id = "quizNavWrapper";
+  navWrapper.innerHTML = navHtml;
+  container.appendChild(navWrapper);
 }
 
 function clearAutoAdvance() {
@@ -755,32 +844,9 @@ function quizNavNext() {
 function quizNavPrev() {
   clearAutoAdvance();
   if (quizState.currentIndex <= 0) return;
-  // 上一题仅查看，不可重新作答
-  var q = quizState.questions[quizState.currentIndex - 1];
-  if (q.userAnswer) {
-    quizState.currentIndex--;
-    quizState.answered = true; // 标记为已看过
-    renderQuestion();
-    // 渲染后立即显示上一题的答案
-    setTimeout(function () {
-      var prevQ = quizState.questions[quizState.currentIndex];
-      var prevCorrect = prevQ.userAnswer && prevQ.userAnswer.isCorrect;
-      var prevExp = prevQ.type === "sign"
-        ? prevQ.sign.description
-        : (prevQ.question ? prevQ.question.explanation : "");
-      // 高亮选项
-      var btns = document.querySelectorAll("#quizOptions .quiz-option");
-      for (var b = 0; b < btns.length; b++) {
-        btns[b].classList.add("disabled");
-        var opt = prevQ.options[b];
-        if (opt.isCorrect) btns[b].classList.add("show-correct");
-        if (prevQ.userAnswer && opt.name === prevQ.userAnswer.name && !opt.isCorrect) btns[b].classList.add("wrong");
-      }
-      showPostAnswer(prevCorrect, prevExp);
-      clearAutoAdvance(); // 上一题不倒计时
-    }, 100);
-    window.scrollTo(0, 0);
-  }
+  quizState.currentIndex--;
+  renderQuestion();
+  window.scrollTo(0, 0);
 }
 
 // ========== 滑动手势 ==========
@@ -808,6 +874,7 @@ function setupSwipe(card) {
 function renderQuizResult() {
   clearQuizState();
   var totalQuestions = quizState.questions.length;
+  var mode = quizState.mode;
   var maxScore = totalQuestions * POINTS_PER_QUESTION;
   var score = quizState.correctCount * POINTS_PER_QUESTION;
   var wrongCount = quizState.wrongCount;
@@ -878,6 +945,15 @@ function renderQuizResult() {
     '</div>';
 
   document.getElementById("quizContainer").innerHTML = html;
+
+  // 重置内存状态，防止残留
+  quizState = {
+    mode: null,
+    questions: [],
+    currentIndex: 0,
+    correctCount: 0,
+    wrongCount: 0,
+  };
 }
 
 // ========== 渲染错题页面 ==========
@@ -907,56 +983,85 @@ function renderWrongPage() {
     return;
   }
 
+  // 按类别分组
+  var groups = {};
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var gkey = item.category || "other";
+    if (!groups[gkey]) groups[gkey] = [];
+    groups[gkey].push(item);
+  }
+
+  // 类别排序
+  var catOrder = ["warning","prohibition","mandatory","guide","auxiliary",
+                   "hand_signals","road_markings","traffic_lights","right_of_way",
+                   "speed_limits","demerit_points","expressway","penalties","safety"];
+  var sortedKeys = [];
+  for (var c = 0; c < catOrder.length; c++) {
+    if (groups[catOrder[c]]) sortedKeys.push(catOrder[c]);
+  }
+  for (var gkey in groups) {
+    if (groups.hasOwnProperty(gkey) && sortedKeys.indexOf(gkey) < 0) sortedKeys.push(gkey);
+  }
+
   var html =
     '<div class="wrong-header">' +
       '<span class="wrong-count">共 ' + list.length + ' 道错题</span>' +
       '<button class="btn-clear" onclick="clearAllWrongAnswers()">清空全部</button>' +
     '</div>' +
-    '<div class="wrong-persistence-note">💡 错题数据保存在浏览器本地，清除缓存或使用无痕模式会导致丢失</div>' +
-    '<div class="wrong-list">';
+    '<div class="wrong-persistence-note">💡 错题数据保存在浏览器本地，清除缓存或使用无痕模式会导致丢失</div>';
 
-  for (var i = 0; i < list.length; i++) {
-    var item = list[i];
-    var modeLabel = item.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
+  for (var g = 0; g < sortedKeys.length; g++) {
+    var gkey = sortedKeys[g];
+    var items = groups[gkey];
 
-    if (item.type === "sign") {
-      var catName = CATEGORIES[item.category] ? CATEGORIES[item.category].name : "";
-      var signMedia = item.img
-        ? '<img src="' + item.img + '" alt="" style="max-width:48px;max-height:48px;">'
-        : (item.svg || '');
+    // 获取类别名
+    var gname = gkey;
+    var gicon = "";
+    if (CATEGORIES[gkey]) { gname = CATEGORIES[gkey].name; gicon = CATEGORIES[gkey].icon; }
+    else if (KNOWLEDGE_CATEGORIES[gkey]) { gname = KNOWLEDGE_CATEGORIES[gkey].name; gicon = KNOWLEDGE_CATEGORIES[gkey].icon; }
 
-      html +=
-        '<div class="wrong-item">' +
-          '<div class="wrong-item-header">' +
-            (signMedia ? '<div class="wrong-item-img">' + signMedia + '</div>' : '') +
-            '<div class="wrong-item-info">' +
-              '<div class="wrong-item-correct">✓ 正确答案: ' + item.name + '</div>' +
-              (item.userAnswer ? '<div class="wrong-item-user">✗ 你的答案: ' + item.userAnswer + '</div>' : '') +
-              '<div class="wrong-item-time">' + modeLabel + ' · ' + catName + ' · ' + item.time + '</div>' +
-              (item.wrongCount > 1 ? '<div class="wrong-count-badge">错了 <b>' + item.wrongCount + '</b> 次</div>' : '') +
+    html += '<div class="wrong-group">' +
+      '<div class="wrong-group-title">' + gicon + ' ' + gname + ' <span class="wrong-group-count">' + items.length + '题</span></div>';
+
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var modeLabel = item.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
+
+      if (item.type === "sign") {
+        var signMedia = item.img
+          ? '<img src="' + item.img + '" alt="" style="max-width:48px;max-height:48px;">'
+          : (item.svg || '');
+        html +=
+          '<div class="wrong-item">' +
+            '<div class="wrong-item-header">' +
+              (signMedia ? '<div class="wrong-item-img">' + signMedia + '</div>' : '') +
+              '<div class="wrong-item-info">' +
+                '<div class="wrong-item-correct">✓ ' + item.name + '</div>' +
+                (item.userAnswer ? '<div class="wrong-item-user">✗ 你的答案: ' + item.userAnswer + '</div>' : '') +
+                '<div class="wrong-item-time">' + item.time + '</div>' +
+                (item.wrongCount > 1 ? '<div class="wrong-count-badge">错了 <b>' + item.wrongCount + '</b> 次</div>' : '') +
+              '</div>' +
             '</div>' +
-          '</div>' +
-        '</div>';
-    } else if (item.type === "knowledge") {
-      var kcat = KNOWLEDGE_CATEGORIES[item.category];
-      var kcatName = kcat ? kcat.name : "";
-
-      html +=
-        '<div class="wrong-item">' +
-          '<div class="wrong-item-header">' +
-            '<div class="wrong-item-info" style="flex:1">' +
-              '<div class="wrong-item-question">' + (item.questionText || "") + '</div>' +
-              '<div class="wrong-item-correct">✓ 正确答案: ' + (item.correctAnswer || "") + '</div>' +
-              (item.userAnswer ? '<div class="wrong-item-user">✗ 你的答案: ' + item.userAnswer + '</div>' : '') +
-              '<div class="wrong-item-time">' + modeLabel + ' · ' + kcatName + ' · ' + item.time + '</div>' +
-              (item.wrongCount > 1 ? '<div class="wrong-count-badge">错了 <b>' + item.wrongCount + '</b> 次</div>' : '') +
+          '</div>';
+      } else if (item.type === "knowledge") {
+        html +=
+          '<div class="wrong-item">' +
+            '<div class="wrong-item-header">' +
+              '<div class="wrong-item-info" style="flex:1">' +
+                '<div class="wrong-item-question">' + (item.questionText || "") + '</div>' +
+                '<div class="wrong-item-correct">✓ ' + (item.correctAnswer || "") + '</div>' +
+                (item.userAnswer ? '<div class="wrong-item-user">✗ 你的答案: ' + item.userAnswer + '</div>' : '') +
+                '<div class="wrong-item-time">' + item.time + '</div>' +
+                (item.wrongCount > 1 ? '<div class="wrong-count-badge">错了 <b>' + item.wrongCount + '</b> 次</div>' : '') +
+              '</div>' +
             '</div>' +
-          '</div>' +
-        '</div>';
+          '</div>';
+      }
     }
+    html += '</div>';
   }
 
-  html += '</div>';
   container.innerHTML = html;
 }
 

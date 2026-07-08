@@ -1099,8 +1099,17 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
   gap: 8px;
+}
+
+#quizNavWrapper {
+  position: sticky;
+  bottom: var(--tab-height);
+  z-index: 50;
+  background: var(--card-bg);
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
 }
 
 .quiz-nav-btn {
@@ -1150,6 +1159,26 @@ button {
   margin-top: 4px;
 }
 
+.wrong-group {
+  margin-bottom: 16px;
+}
+
+.wrong-group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 8px 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.wrong-group-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
 .wrong-persistence-note {
   font-size: 11px;
   color: var(--text-muted);
@@ -1158,6 +1187,76 @@ button {
   margin-bottom: 8px;
   background: var(--warning-light);
   border-radius: 8px;
+}
+
+/* ============================================
+   续答横幅
+   ============================================ */
+.resume-banner {
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resume-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.resume-banner-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.resume-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.resume-banner-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.resume-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.resume-btn {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.resume-discard-btn {
+  padding: 8px 12px;
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font);
 }
 
 /* ============================================
