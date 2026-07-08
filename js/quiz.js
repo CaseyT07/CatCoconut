@@ -573,26 +573,76 @@ function showHistoryDetail(index) {
       if (typeof wiData === "string") {
         html += '<div class="hd-wrong-item"><span>' + wiData + '</span></div>';
       } else {
-        var detailId = "hd_detail_" + index + "_" + wi;
-        html +=
-          '<div class="hd-wrong-item" onclick="var e=document.getElementById(\'' + detailId + '\');e.style.display=e.style.display==\'none\'?\'block\':\'none\'">' +
-            '<div class="hd-wrong-name">' + (wiData.name || "") + '</div>' +
-            '<div class="hd-wrong-answer" style="display:flex;gap:8px;font-size:12px;margin-top:4px;">' +
-              (wiData.userAnswer ? '<span style="color:#dc2626">✗ 你答了: ' + wiData.userAnswer + '</span>' : '') +
-              (wiData.correctAnswer ? '<span style="color:#16a34a">✓ 答案: ' + wiData.correctAnswer + '</span>' : '') +
-            '</div>';
-        // 找原题获取完整解析
+        // 构建完整答题场景（和初次答题错误时一模一样）
+        var qCard = "";
+
         if (wiData.signId) {
+          var sign = null;
           for (var si = 0; si < TRAFFIC_SIGNS.length; si++) {
-            if (TRAFFIC_SIGNS[si].id === wiData.signId) {
-              html += '<div class="hd-wrong-exp" id="' + detailId + '" style="display:none"><div class="hd-exp-text">' + TRAFFIC_SIGNS[si].description + '</div></div>';
-              break;
-            }
+            if (TRAFFIC_SIGNS[si].id === wiData.signId) { sign = TRAFFIC_SIGNS[si]; break; }
           }
-        } else if (wiData.type === "knowledge") {
-          html += '<div class="hd-wrong-exp" id="' + detailId + '" style="display:none"><div class="hd-exp-text">' + (wiData.question || "") + '</div></div>';
+          if (sign) {
+            // 生成选项
+            var others = TRAFFIC_SIGNS.filter(function (s) { return s.id !== sign.id; });
+            var wrongs = shuffle(others).slice(0, 3);
+            var opts = shuffle([
+              { name: sign.name, isCorrect: true },
+              { name: wrongs[0].name, isCorrect: false },
+              { name: wrongs[1].name, isCorrect: false },
+              { name: wrongs[2].name, isCorrect: false }
+            ]);
+            var signImg = sign.img
+              ? '<img src="' + sign.img + '" alt="" style="max-width:120px;max-height:100px;">'
+              : (sign.svg || "");
+            qCard =
+              '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);margin-bottom:8px;">' +
+                '<div class="quiz-sign-img">' + signImg + '</div>' +
+                '<p class="quiz-hint">这是什么交通标志？</p>' +
+                '<div class="quiz-options">';
+            for (var oi = 0; oi < opts.length; oi++) {
+              var oc = "quiz-option disabled";
+              if (opts[oi].isCorrect) oc += " show-correct";
+              if (!opts[oi].isCorrect && opts[oi].name === wiData.userAnswer) oc += " wrong";
+              qCard += '<button class="' + oc + '">' + opts[oi].name + '</button>';
+            }
+            qCard += '</div>' +
+              '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
+                '<div class="exp-header">✗ 回答错误</div>' +
+                '<div class="exp-body">' + sign.description + '</div>' +
+              '</div></div>';
+          }
+        } else if (wiData.knowledgeId) {
+          var kq = null;
+          for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
+            if (KNOWLEDGE_QUESTIONS[ki].id === wiData.knowledgeId) { kq = KNOWLEDGE_QUESTIONS[ki]; break; }
+          }
+          if (kq) {
+            var kqImg = (kq.type === "image" && kq.image) ? '<div style="margin:0 auto;max-width:120px;">' + kq.image + '</div>' : "";
+            var kqOpts = [];
+            for (var oi2 = 0; oi2 < kq.options.length; oi2++) {
+              kqOpts.push({ name: kq.options[oi2], isCorrect: (oi2 === kq.answer) });
+            }
+            qCard =
+              '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);margin-bottom:8px;">' +
+                kqImg +
+                '<p class="quiz-hint">' + kq.question + '</p>' +
+                '<div class="quiz-options">';
+            for (var oi3 = 0; oi3 < kqOpts.length; oi3++) {
+              var oc2 = "quiz-option disabled";
+              if (kqOpts[oi3].isCorrect) oc2 += " show-correct";
+              if (!kqOpts[oi3].isCorrect && kqOpts[oi3].name === wiData.userAnswer) oc2 += " wrong";
+              qCard += '<button class="' + oc2 + '">' + kqOpts[oi3].name + '</button>';
+            }
+            qCard += '</div>' +
+              (kq.explanation ?
+                '<div class="quiz-explanation-card wrong-exp" style="margin-top:10px;">' +
+                  '<div class="exp-header">✗ 回答错误</div>' +
+                  '<div class="exp-body">' + kq.explanation + '</div>' +
+                '</div>' : '') +
+              '</div>';
+          }
         }
-        html += '<div class="hd-expand-hint">点击查看详情</div></div>';
+        html += (qCard || '<div class="hd-wrong-item"><span>' + (wiData.name || "") + '</span></div>');
       }
     }
     html += '</div>';
