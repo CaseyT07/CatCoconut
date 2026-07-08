@@ -1121,6 +1121,18 @@ button {
   text-align: right;
 }
 
+/* 历史详情中的图片不要太大 */
+.history-detail-page img {
+  max-width: 80px !important;
+  max-height: 90px !important;
+}
+
+.history-detail-page .quiz-sign-img {
+  width: auto;
+  min-height: auto;
+  margin-bottom: 8px;
+}
+
 .hd-stat span {
   font-weight: 700;
 }

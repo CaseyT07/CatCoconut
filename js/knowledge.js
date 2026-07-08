@@ -14,16 +14,16 @@ const KNOWLEDGE_CATEGORIES = {
   safety:        { id: "safety",        name: "🛟 安全常识", icon: "🛟" },
 };
 
-// 手势图片：已替换为真实照片
+// 手势图片：真实照片
 const HAND_SIGNAL_SVGS = {
-  stop:            '<img src="img/knowledge/hand_signals/stop.png" style="max-width:120px;max-height:160px;" alt="停止信号">',
-  straight:        '<img src="img/knowledge/hand_signals/straight.png" style="max-width:120px;max-height:160px;" alt="直行信号">',
-  left_turn:       '<img src="img/knowledge/hand_signals/left_turn.png" style="max-width:120px;max-height:160px;" alt="左转弯信号">',
-  right_turn:      '<img src="img/knowledge/hand_signals/right_turn.png" style="max-width:120px;max-height:160px;" alt="右转弯信号">',
-  change_lane:     '<img src="img/knowledge/hand_signals/change_lane.png" style="max-width:120px;max-height:160px;" alt="变道信号">',
-  slow_down:       '<img src="img/knowledge/hand_signals/slow_down.png" style="max-width:120px;max-height:160px;" alt="减速慢行信号">',
-  pull_over:       '<img src="img/knowledge/hand_signals/pull_over.png" style="max-width:120px;max-height:160px;" alt="靠边停车信号">',
-  left_turn_wait:  '<img src="img/knowledge/hand_signals/left_turn_wait.png" style="max-width:120px;max-height:160px;" alt="左转弯待转信号">',
+  stop:            '<img src="img/knowledge/hand_signals/stop.png" style="max-width:100px;max-height:120px;" alt="停止信号">',
+  straight:        '<img src="img/knowledge/hand_signals/straight.png" style="max-width:100px;max-height:120px;" alt="直行信号">',
+  left_turn:       '<img src="img/knowledge/hand_signals/left_turn.png" style="max-width:100px;max-height:120px;" alt="左转弯信号">',
+  right_turn:      '<img src="img/knowledge/hand_signals/right_turn.png" style="max-width:100px;max-height:120px;" alt="右转弯信号">',
+  change_lane:     '<img src="img/knowledge/hand_signals/change_lane.png" style="max-width:100px;max-height:120px;" alt="变道信号">',
+  slow_down:       '<img src="img/knowledge/hand_signals/slow_down.png" style="max-width:100px;max-height:120px;" alt="减速慢行信号">',
+  pull_over:       '<img src="img/knowledge/hand_signals/pull_over.png" style="max-width:100px;max-height:120px;" alt="靠边停车信号">',
+  left_turn_wait:  '<img src="img/knowledge/hand_signals/left_turn_wait.png" style="max-width:100px;max-height:120px;" alt="左转弯待转信号">',
 };
 
 // 96 questions across 9 categories
