@@ -129,6 +129,11 @@ function saveQuizHistory(record) {
 
 // ========== 答题状态存取 ==========
 
+function _stateKey(mode) {
+  mode = mode || quizState.mode || "image";
+  return "traffic_quiz_state_" + mode;
+}
+
 function saveQuizState() {
   if (!quizState.questions.length) return;
   if (quizState.currentIndex >= quizState.questions.length) return;
@@ -147,21 +152,37 @@ function saveQuizState() {
     });
   }
   try {
-    localStorage.setItem("traffic_quiz_state", JSON.stringify(state));
+    localStorage.setItem(_stateKey(), JSON.stringify(state));
   } catch (e) {}
 }
 
-function getSavedQuizState() {
+function getSavedQuizState(mode) {
+  mode = mode || "image";
   try {
-    var raw = localStorage.getItem("traffic_quiz_state");
+    var raw = localStorage.getItem(_stateKey(mode));
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
   }
 }
 
-function clearQuizState() {
-  localStorage.removeItem("traffic_quiz_state");
+function clearQuizState(mode) {
+  mode = mode || quizState.mode || "image";
+  localStorage.removeItem(_stateKey(mode));
+}
+
+function getAnySavedState() {
+  // 返回所有 mode 的保存状态
+  var modes = ["image", "comprehensive", "wrong"];
+  var results = [];
+  for (var i = 0; i < modes.length; i++) {
+    var s = getSavedQuizState(modes[i]);
+    if (s && s.questionData && s.currentIndex < s.questionData.length) {
+      s._mode = modes[i];
+      results.push(s);
+    }
+  }
+  return results;
 }
 
 // ========== 工具函数 ==========
@@ -342,19 +363,24 @@ function showResumeDialog(savedState) {
     '</div>';
 }
 
-function resumeQuiz() {
-  var savedState = getSavedQuizState();
+function resumeQuiz(mode) {
+  var savedState = getSavedQuizState(mode);
   if (!savedState) {
     renderQuizIntro();
     return;
   }
   if (!restoreQuiz(savedState)) {
-    clearQuizState();
+    clearQuizState(mode);
     renderQuizIntro();
     return;
   }
   QUIZ_MODE = quizState.mode;
   renderQuestion();
+}
+
+function discardSavedState(mode) {
+  clearQuizState(mode);
+  renderQuizIntro();
 }
 
 function discardAndStart() {
@@ -368,13 +394,13 @@ function renderQuizIntro() {
   QUIZ_MODE = null;
   var container = document.getElementById("quizContainer");
   var history = getQuizHistory();
-  var savedState = getSavedQuizState();
-  var hasSaved = savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length;
+  var savedStates = getAnySavedState();
 
   var html = '<div class="quiz-intro">';
 
-  // 续答横幅（紧凑，不霸屏）
-  if (hasSaved) {
+  // 多个续答横幅（每个模式一个）
+  for (var si = 0; si < savedStates.length; si++) {
+    var savedState = savedStates[si];
     var sMode = savedState.mode === "comprehensive" ? "📚 综合知识" : (savedState.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
     var sTotal = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
     var sIdx = savedState.currentIndex;
@@ -388,8 +414,8 @@ function renderQuizIntro() {
           '</div>' +
         '</div>' +
         '<div class="resume-banner-actions">' +
-          '<button class="resume-btn" onclick="resumeQuiz()">继续</button>' +
-          '<button class="resume-discard-btn" onclick="discardAndStart()">放弃</button>' +
+          '<button class="resume-btn" onclick="resumeQuiz(\'' + savedState._mode + '\')">继续</button>' +
+          '<button class="resume-discard-btn" onclick="discardSavedState(\'' + savedState._mode + '\')">放弃</button>' +
         '</div>' +
       '</div>';
   }
@@ -458,13 +484,25 @@ function renderQuizIntro() {
 
       var modeLabel = h.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
 
+      var wrongItemsHtml = "";
+      if (h.wrongItems && h.wrongItems.length > 0) {
+        wrongItemsHtml = '<div class="history-wrong-list">';
+        for (var wi = 0; wi < h.wrongItems.length; wi++) {
+          wrongItemsHtml += '<span class="history-wrong-tag">' + h.wrongItems[wi] + '</span>';
+        }
+        wrongItemsHtml += '</div>';
+      }
+
+      var histId = "hist_" + i;
       html +=
-        '<div class="history-item">' +
+        '<div class="history-item" onclick="toggleHistoryExpand(\'' + histId + '\')">' +
           '<div class="history-score" style="color:' + ringColor + '">' + h.score + '<span>分</span></div>' +
           '<div class="history-info">' +
             '<div class="history-date">' + modeLabel + ' · ' + h.date + '</div>' +
             '<div class="history-detail">正确 ' + h.correct + ' / ' + h.total + ' 题 (' + pct + '%)</div>' +
+            '<div class="history-expand" id="' + histId + '" style="display:none">' + wrongItemsHtml + '</div>' +
           '</div>' +
+          '<div class="history-arrow">▼</div>' +
         '</div>';
     }
 
@@ -477,6 +515,16 @@ function renderQuizIntro() {
   }
 
   container.innerHTML = html;
+}
+
+function toggleHistoryExpand(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (el.style.display === "none") {
+    el.style.display = "block";
+  } else {
+    el.style.display = "none";
+  }
 }
 
 function clearQuizHistory() {
@@ -553,7 +601,12 @@ function startWrongQuiz() {
     alert("暂无错题记录，先去刷题吧！");
     return;
   }
-  clearQuizState();
+  // 检查是否有未完成进度
+  var savedState = getSavedQuizState("wrong");
+  if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
+    if (!confirm("错题复习有一场未完成的考试，是否重新开始？之前的进度将丢失。")) return;
+    clearQuizState("wrong");
+  }
   QUIZ_MODE = "wrong";
   quizState.mode = "wrong";
   quizState.questions = generateWrongQuiz();
@@ -565,7 +618,13 @@ function startWrongQuiz() {
 }
 
 function startQuiz(mode) {
-  clearQuizState();
+  // 检查该模式是否有未完成进度
+  var savedState = getSavedQuizState(mode);
+  if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
+    var modeLabel = mode === "comprehensive" ? "综合知识" : "图片标识";
+    if (!confirm(modeLabel + "有一场未完成的考试，是否重新开始？之前的进度将丢失。")) return;
+    clearQuizState(mode);
+  }
   QUIZ_MODE = mode;
   quizState.mode = mode;
 
@@ -731,9 +790,12 @@ function selectAnswer(idx) {
 
   saveQuizState();
 
-  // 自动跳转倒计时
-  var delay = isCorrect ? 2500 : 3500;
-  startAutoAdvance(delay);
+  // 最后一题不自动跳，等用户点交卷
+  var isLast = quizState.currentIndex >= quizState.questions.length - 1;
+  if (!isLast) {
+    var delay = isCorrect ? 2500 : 3500;
+    startAutoAdvance(delay);
+  }
 }
 
 function showPostAnswer(isCorrect, explanation) {
@@ -745,16 +807,23 @@ function showPostAnswer(isCorrect, explanation) {
   var isLast = quizState.currentIndex >= total - 1;
   var hasPrev = quizState.currentIndex > 0;
 
-  var navHtml =
-    '<div class="quiz-nav-bar">' +
-      '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-      '<span class="quiz-nav-countdown" id="countdownRing">' +
-        (isLast
-          ? '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>'
-          : '<svg width="36" height="36" class="countdown-svg"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/><circle cx="18" cy="18" r="15" fill="none" stroke="' + (isCorrect ? '#16a34a' : '#dc2626') + '" stroke-width="3" stroke-dasharray="94.2" stroke-dashoffset="0" id="countdownCircle" transform="rotate(-90 18 18)" style="transition: stroke-dashoffset 0.1s linear"/></svg>') +
-      '</span>' +
-      '<button class="quiz-nav-btn' + (isLast ? ' disabled' : '') + '" onclick="quizNavNext()"' + (isLast ? ' disabled' : '') + '>下一题 ▶</button>' +
-    '</div>';
+  var navHtml;
+  if (isLast) {
+    navHtml =
+      '<div class="quiz-nav-bar">' +
+        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
+        '<button class="quiz-nav-btn quiz-submit-btn" onclick="renderQuizResult()">📝 交卷</button>' +
+      '</div>';
+  } else {
+    navHtml =
+      '<div class="quiz-nav-bar">' +
+        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
+        '<span class="quiz-nav-countdown" id="countdownRing">' +
+          '<svg width="36" height="36" class="countdown-svg"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/><circle cx="18" cy="18" r="15" fill="none" stroke="' + (isCorrect ? '#16a34a' : '#dc2626') + '" stroke-width="3" stroke-dasharray="94.2" stroke-dashoffset="0" id="countdownCircle" transform="rotate(-90 18 18)" style="transition: stroke-dashoffset 0.1s linear"/></svg>' +
+        '</span>' +
+        '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>' +
+      '</div>';
+  }
 
   var expHtml = explanation
     ? '<div class="quiz-explanation-card ' + (isCorrect ? 'correct-exp' : 'wrong-exp') + '">' +
@@ -785,14 +854,23 @@ function renderNavForAnswered() {
   var isLast = quizState.currentIndex >= total - 1;
   var hasPrev = quizState.currentIndex > 0;
 
-  var navHtml =
-    '<div class="quiz-nav-bar">' +
-      '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-      '<span class="quiz-nav-countdown" id="countdownRing">' +
-        '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>' +
-      '</span>' +
-      '<button class="quiz-nav-btn' + (isLast ? '' : '') + '" onclick="quizNavNext()"' + '>下一题 ▶</button>' +
-    '</div>';
+  var navHtml;
+  if (isLast) {
+    navHtml =
+      '<div class="quiz-nav-bar">' +
+        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
+        '<button class="quiz-nav-btn quiz-submit-btn" onclick="renderQuizResult()">📝 交卷</button>' +
+      '</div>';
+  } else {
+    navHtml =
+      '<div class="quiz-nav-bar">' +
+        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
+        '<span class="quiz-nav-countdown" id="countdownRing">' +
+          '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>' +
+        '</span>' +
+        '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>' +
+      '</div>';
+  }
 
   var container = document.getElementById("quizContainer");
   var oldNav = document.getElementById("quizNavWrapper");
@@ -1009,7 +1087,22 @@ function renderWrongPage() {
       '<span class="wrong-count">共 ' + list.length + ' 道错题</span>' +
       '<button class="btn-clear" onclick="clearAllWrongAnswers()">清空全部</button>' +
     '</div>' +
-    '<div class="wrong-persistence-note">💡 错题数据保存在浏览器本地，清除缓存或使用无痕模式会导致丢失</div>';
+    '<div class="wrong-persistence-note">💡 错题保存在浏览器本地，不清除缓存就不会丢失。关闭浏览器、重启手机均不影响。</div>';
+
+  // 分类筛选 tabs
+  html += '<div class="wrong-category-tabs" id="wrongCategoryTabs">';
+  html += '<button class="wrong-cat-tab active" onclick="filterWrongCategory(\'all\')">全部 (' + list.length + ')</button>';
+  for (var g = 0; g < sortedKeys.length; g++) {
+    var gkey = sortedKeys[g];
+    var items = groups[gkey];
+    var gname2 = gkey;
+    var gicon2 = "";
+    if (CATEGORIES[gkey]) { gname2 = CATEGORIES[gkey].name; gicon2 = CATEGORIES[gkey].icon; }
+    else if (KNOWLEDGE_CATEGORIES[gkey]) { gname2 = KNOWLEDGE_CATEGORIES[gkey].name; gicon2 = KNOWLEDGE_CATEGORIES[gkey].icon; }
+    html += '<button class="wrong-cat-tab" onclick="filterWrongCategory(\'' + gkey + '\')">' + gicon2 + ' ' + gname2 + ' (' + items.length + ')</button>';
+  }
+  html += '</div>';
+  html += '<div class="wrong-list" id="wrongList">';
 
   for (var g = 0; g < sortedKeys.length; g++) {
     var gkey = sortedKeys[g];
@@ -1021,7 +1114,7 @@ function renderWrongPage() {
     if (CATEGORIES[gkey]) { gname = CATEGORIES[gkey].name; gicon = CATEGORIES[gkey].icon; }
     else if (KNOWLEDGE_CATEGORIES[gkey]) { gname = KNOWLEDGE_CATEGORIES[gkey].name; gicon = KNOWLEDGE_CATEGORIES[gkey].icon; }
 
-    html += '<div class="wrong-group">' +
+    html += '<div class="wrong-group" data-wrong-cat="' + gkey + '">' +
       '<div class="wrong-group-title">' + gicon + ' ' + gname + ' <span class="wrong-group-count">' + items.length + '题</span></div>';
 
     for (var i = 0; i < items.length; i++) {
@@ -1063,6 +1156,24 @@ function renderWrongPage() {
   }
 
   container.innerHTML = html;
+}
+
+function filterWrongCategory(cat) {
+  var tabs = document.querySelectorAll(".wrong-cat-tab");
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove("active");
+    if (tabs[i].textContent.indexOf(cat) === 0 || (cat === "all" && tabs[i].textContent.indexOf("全部") === 0)) {
+      tabs[i].classList.add("active");
+    }
+  }
+  var groups = document.querySelectorAll(".wrong-group");
+  for (var j = 0; j < groups.length; j++) {
+    if (cat === "all" || groups[j].getAttribute("data-wrong-cat") === cat) {
+      groups[j].style.display = "block";
+    } else {
+      groups[j].style.display = "none";
+    }
+  }
 }
 
 function clearAllWrongAnswers() {

@@ -1024,6 +1024,35 @@ button {
   word-break: break-all;
 }
 
+.history-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.history-expand {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
+}
+
+.history-wrong-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.history-wrong-tag {
+  display: inline-block;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+}
+
 .history-more {
   text-align: center;
   font-size: 12px;
@@ -1135,6 +1164,14 @@ button {
   pointer-events: none;
 }
 
+.quiz-submit-btn {
+  background: var(--success) !important;
+  color: #fff !important;
+  border-color: var(--success) !important;
+  font-size: 16px !important;
+  padding: 10px 24px !important;
+}
+
 .quiz-nav-countdown {
   display: flex;
   align-items: center;
@@ -1177,6 +1214,39 @@ button {
   font-weight: 500;
   color: var(--text-muted);
   margin-left: 6px;
+}
+
+.wrong-category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wrong-category-tabs::-webkit-scrollbar { display: none; }
+
+.wrong-cat-tab {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.2s;
+}
+
+.wrong-cat-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .wrong-persistence-note {
