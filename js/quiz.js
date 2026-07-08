@@ -83,6 +83,10 @@ function addWrongAnswer(questionData) {
       entry.questionText = questionData.question.question;
       entry.correctAnswer = questionData.question.options[questionData.question.answer];
       entry.category = questionData.question.category;
+      // 交警手势存图片名
+      if (questionData.question.category === "hand_signals" && questionData.question.image) {
+        entry.handImage = questionData.question.image;
+      }
     }
 
     if (questionData.userAnswer) {
@@ -1372,17 +1376,11 @@ function renderWrongPage() {
             '</div>' +
           '</div>';
       } else if (item.type === "knowledge") {
-        var kqImg = "";
-        for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
-          if (KNOWLEDGE_QUESTIONS[ki].id === item.knowledgeId && KNOWLEDGE_QUESTIONS[ki].image) {
-            kqImg = KNOWLEDGE_QUESTIONS[ki].image;
-            break;
-          }
-        }
+        var kqImg = item.handImage || "";
         html +=
           '<div class="wrong-item">' +
             '<div class="wrong-item-header">' +
-              (kqImg ? '<div class="wrong-item-img" style="width:64px;height:64px;">' + kqImg + '</div>' : '') +
+              (kqImg ? '<div class="wrong-item-img">' + kqImg + '</div>' : '') +
               '<div class="wrong-item-info" style="flex:1">' +
                 '<div class="wrong-item-question">' + (item.questionText || "") + '</div>' +
                 '<div class="wrong-item-correct">✓ ' + (item.correctAnswer || "") + '</div>' +
