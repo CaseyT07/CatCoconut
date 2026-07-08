@@ -1311,23 +1311,8 @@ const TRAFFIC_SIGNS = [
 
   // ========== 指路标志 Guide Signs ==========
   {
-    id: "g01", category: "guide", name: "高速公路",
-    description: "指示前方为高速公路入口，车辆即将进入高速公路路段，高速公路是全封闭、全立交的机动车快速通道。",
-    tip: "进入高速前检查油量、轮胎、灯光，高速上最低限速60km/h，不得掉头和倒车。",
-    tags: ["高速公路", "高速"],
-    weight: 3,
-    svg: `<svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="4" width="92" height="62" rx="6" fill="#0066CC"/>
-      <rect x="12" y="35" width="76" height="24" rx="2" fill="none" stroke="white" stroke-width="2"/>
-      <text x="50" y="54" text-anchor="middle" font-size="14" fill="white" font-family="sans-serif" font-weight="bold">高速公路</text>
-      <circle cx="30" cy="24" r="12" fill="none" stroke="white" stroke-width="2.5"/>
-      <rect x="40" y="16" width="48" height="16" rx="2" fill="none" stroke="white" stroke-width="2"/>
-      <line x1="88" y1="16" x2="88" y2="32" stroke="white" stroke-width="2.5"/>
-      <line x1="68" y1="32" x2="68" y2="48" stroke="white" stroke-width="2"/>
-    </svg>`
-  },
-  {
     id: "g02", category: "guide", name: "国道编号",
+    img: "img/signs/g02.png",
     description: "标示国道编号（G字头），国道是国家级干线公路，连接各省市重要城市。",
     tip: "国道路况差异大，有的路段接近高速公路标准，有的路段可能较窄，注意限速变化。",
     tags: ["国道", "G", "公路编号"],
@@ -1339,6 +1324,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "g03", category: "guide", name: "省道编号",
+    img: "img/signs/g03.png",
     description: "标示省道编号（S字头），省道是省级干线公路，连接省内各市县。",
     tip: "省道通常限速60-80km/h，穿越村镇的路段注意行人和非机动车横穿。",
     tags: ["省道", "S"],
@@ -1350,6 +1336,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "g04", category: "guide", name: "县道编号",
+    img: "img/signs/g04.png",
     description: "标示县道编号（X字头），县道是县级道路，连接县内各乡镇。",
     tip: "县道路面较窄，部分路段可能没有分道线，会车时需要格外小心。",
     tags: ["县道", "X"],
@@ -1361,6 +1348,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "g05", category: "guide", name: "地点距离",
+    img: "img/signs/g05.png",
     description: "标示前方各地点名称及其距离（公里），帮助驾驶员规划行程和判断剩余路程。",
     tip: "距离提示有助于判断是否需要加油、休息，长途驾驶建议每2小时休息一次。",
     tags: ["地点距离", "公里"],
@@ -1373,6 +1361,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "g06", category: "guide", name: "此路不通",
+    img: "img/signs/g06.png",
     description: "指示前方道路为死胡同或封闭路段，车辆无法从此方向驶出，应提前选择其他路线。",
     tip: "导航中有时会导到封闭路段，看到此标志立即调头，不要继续前行。",
     tags: ["此路不通", "死胡同"],
@@ -1386,23 +1375,8 @@ const TRAFFIC_SIGNS = [
     </svg>`
   },
   {
-    id: "g07", category: "guide", name: "绕行",
-    description: "指示前方道路封闭或因其他原因无法通行，需要按照绕行路线行驶。",
-    tip: "绕行标志通常会配合箭头指示绕行方向，注意连续观察后续指路标志。",
-    tags: ["绕行", "改道"],
-    weight: 1,
-    svg: `<svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="4" width="92" height="62" rx="6" fill="#0066CC"/>
-      <path d="M70,52 L50,52 L36,35 L20,35" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
-      <polygon points="20,29 14,35 20,41" fill="white"/>
-      <text x="50" y="25" text-anchor="middle" font-size="14" fill="white" font-family="sans-serif">绕行</text>
-      <line x1="70" y1="35" x2="80" y2="35" stroke="white" stroke-width="3"/>
-      <line x1="78" y1="33" x2="80" y2="35" stroke="white" stroke-width="3"/>
-      <line x1="78" y1="37" x2="80" y2="35" stroke="white" stroke-width="3"/>
-    </svg>`
-  },
-  {
     id: "g08", category: "guide", name: "服务区",
+    img: "img/signs/g08.png",
     description: "指示前方有高速公路服务区，提供加油、餐饮、卫生间、休息等服务设施。",
     tip: "长途驾驶应提前规划服务区停靠点，不要等到疲劳或油量过低再找服务区。",
     tags: ["服务区", "休息站"],
@@ -1418,35 +1392,11 @@ const TRAFFIC_SIGNS = [
       <text x="18" y="48" text-anchor="middle" font-size="8" fill="white" font-family="sans-serif">P</text>
     </svg>`
   },
-  {
-    id: "g09", category: "guide", name: "停车场",
-    description: "指示附近有公共停车场，可供车辆停放。图标中通常包含「P」字母。",
-    tip: "停车场标志分收费和免费，进入前注意查看收费标准。蓝色P通常为收费停车场。",
-    tags: ["停车场", "停车", "P"],
-    weight: 3,
-    svg: `<svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="4" width="92" height="62" rx="6" fill="#0066CC"/>
-      <text x="50" y="54" text-anchor="middle" font-size="36" font-weight="bold" fill="white" font-family="sans-serif">P</text>
-    </svg>`
-  },
-  {
-    id: "g10", category: "guide", name: "紧急停车带",
-    description: "指示前方高速公路右侧设有紧急停车带，供车辆发生故障时临时停靠使用。",
-    tip: "紧急停车带仅供紧急情况使用，非紧急情况禁止占用。停车后应开启双闪灯，在车后150米外放置三角警示牌。",
-    tags: ["紧急停车带", "应急停车"],
-    weight: 1,
-    svg: `<svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="4" width="92" height="62" rx="6" fill="#0066CC"/>
-      <rect x="15" y="38" width="70" height="20" rx="3" fill="none" stroke="white" stroke-width="2"/>
-      <line x1="40" y1="38" x2="30" y2="20" stroke="white" stroke-width="2"/>
-      <line x1="60" y1="38" x2="70" y2="20" stroke="white" stroke-width="2"/>
-      <text x="50" y="28" text-anchor="middle" font-size="10" fill="white" font-family="sans-serif">!</text>
-    </svg>`
-  },
 
   // ========== 辅助标志 Auxiliary Signs ==========
   {
     id: "a01", category: "auxiliary", name: "时间范围",
+    img: "img/signs/a01.png",
     description: "标示上方主标志的生效时间范围，例如某条规则仅在指定时间段内有效。",
     tip: "注意时间范围的起点和终点，超出时间范围限制可能不适用。",
     tags: ["时间", "时段"],
@@ -1458,6 +1408,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a02", category: "auxiliary", name: "车辆种类",
+    img: "img/signs/a02.png",
     description: "标示上方主标志适用于特定类型的车辆，如「货车」、「大型客车」等。",
     tip: "如果您的车辆不属于标示种类，则该主标志不适用于您。",
     tags: ["车辆种类", "货车"],
@@ -1472,6 +1423,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a03", category: "auxiliary", name: "距离前方",
+    img: "img/signs/a03.png",
     description: "标示前方距离主标志所述地点或设施的剩余距离，如「前方200m」、「前方500m」。",
     tip: "看到此类提示后提前做好变道、减速或驶出准备，不要到最后一刻才反应。",
     tags: ["距离", "前方"],
@@ -1482,18 +1434,8 @@ const TRAFFIC_SIGNS = [
     </svg>`
   },
   {
-    id: "a04", category: "auxiliary", name: "区域",
-    description: "标示上方主标志的适用范围为某一区域，进入该区域后标志规则生效。",
-    tip: "区域标志通常成对出现（起点和终点），驶出区域后限制自动解除。",
-    tags: ["区域", "范围"],
-    weight: 1,
-    svg: `<svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="2" width="116" height="36" rx="4" fill="white" stroke="#111" stroke-width="2"/>
-      <text x="60" y="27" text-anchor="middle" font-size="15" fill="#111" font-family="sans-serif">区域</text>
-    </svg>`
-  },
-  {
     id: "a05", category: "auxiliary", name: "除公交车外",
+    img: "img/signs/a05.png",
     description: "标示上方主标志的禁令不适用于公交车，即公交车可以豁免此限制。",
     tip: "公交车和特种车辆（救护车、消防车等）通常享有某些禁行路段的豁免权。",
     tags: ["除外", "公交车"],
@@ -1505,6 +1447,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a06", category: "auxiliary", name: "学校",
+    img: "img/signs/a06.png",
     description: "标示附近有学校，提醒驾驶员注意减速、避让学生，常见于学校周边道路的限速标志辅助说明。",
     tip: "学校区域通常限速30km/h，上下学时段有交警或志愿者维护交通，请听从指挥。",
     tags: ["学校", "学生"],
@@ -1516,6 +1459,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a07", category: "auxiliary", name: "事故",
+    img: "img/signs/a07.png",
     description: "标示前方发生了交通事故，提醒驾驶员减速慢行、注意避让事故车辆和救援人员。",
     tip: "经过事故现场时减速慢行，不要围观拍照。如果事故与自己无关，尽快驶离，为救援留出通道。",
     tags: ["事故", "交通事故"],
@@ -1527,6 +1471,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a08", category: "auxiliary", name: "塌方",
+    img: "img/signs/a08.png",
     description: "标示前方路段发生山体滑坡或路面塌方，道路可能中断或部分通行，需极度小心。",
     tip: "遇到塌方路段，不可强行通过。应注意观察山体是否有继续滑落的危险，在安全处等待或调头绕行。",
     tags: ["塌方", "滑坡"],
@@ -1538,6 +1483,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a09", category: "auxiliary", name: "向前200m",
+    img: "img/signs/a09.png",
     description: "标示主标志所述信息适用于前方200米处，提醒驾驶员提前做好准备。",
     tip: "200米在高速上转瞬即到，看到此提示后立即开始变道、减速等操作。",
     tags: ["向前", "200m"],
@@ -1549,6 +1495,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "a10", category: "auxiliary", name: "长度",
+    img: "img/signs/a10.png",
     description: "标示主标志所述路段的长度/距离，提醒驾驶员该限制将持续多长距离。",
     tip: "注意长度数值，判断需要通过多长距离的限制路段，做好心理预期。",
     tags: ["长度", "距离"],
