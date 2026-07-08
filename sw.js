@@ -1,4 +1,4 @@
-var CACHE_NAME = "traffic-signs-v3";
+var CACHE_NAME = "traffic-signs-v4";
 var urlsToCache = [
   "index.html", "manifest.json",
   "css/style.css",
