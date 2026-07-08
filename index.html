@@ -41,9 +41,20 @@
       <button class="search-clear-btn" id="searchClearBtn" aria-label="清除搜索" style="display:none;">✕</button>
     </div>
 
+    <!-- Mode Toggle: Signs / Knowledge -->
+    <div class="learn-mode-tabs">
+      <button class="learn-mode-tab active" data-mode="signs" onclick="switchLearnMode('signs')">
+        🚫 交通标志
+      </button>
+      <button class="learn-mode-tab" data-mode="knowledge" onclick="switchLearnMode('knowledge')">
+        📚 交规知识
+      </button>
+    </div>
+
     <div class="category-tabs" id="categoryTabs"></div>
 
     <div class="sign-grid" id="signGrid"></div>
+    <div class="knowledge-list" id="knowledgeList" style="display:none;"></div>
   </div>
 
   <!-- === Quiz Page === -->

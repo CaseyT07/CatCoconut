@@ -4,6 +4,7 @@
 
 let currentCategory = "all";
 let currentSearch = "";
+let currentLearnMode = "signs"; // "signs" | "knowledge"
 
 // ========== Shared Utilities ==========
 
@@ -146,6 +147,128 @@ function switchTab(tab) {
   window.scrollTo(0, 0);
 }
 
+// ========== Learn Mode Toggle ==========
+
+function switchLearnMode(mode) {
+  currentLearnMode = mode;
+  currentCategory = "all";
+  currentSearch = "";
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) { searchInput.value = ""; }
+  const clearBtn = document.getElementById("searchClearBtn");
+  if (clearBtn) { clearBtn.style.display = "none"; }
+
+  // Update mode tabs
+  const modeTabs = document.querySelectorAll(".learn-mode-tab");
+  for (let i = 0; i < modeTabs.length; i++) {
+    modeTabs[i].classList.toggle("active", modeTabs[i].getAttribute("data-mode") === mode);
+  }
+
+  // Update search placeholder
+  if (searchInput) {
+    searchInput.placeholder = mode === "knowledge" ? "搜索交规知识..." : "搜索交通标志...";
+    searchInput.setAttribute("aria-label", mode === "knowledge" ? "搜索交规知识" : "搜索交通标志");
+  }
+
+  // Toggle visibility
+  const catTabs = document.getElementById("categoryTabs");
+  const signGrid = document.getElementById("signGrid");
+  const knowledgeList = document.getElementById("knowledgeList");
+
+  if (mode === "knowledge") {
+    if (catTabs) catTabs.style.display = "none";
+    if (signGrid) signGrid.style.display = "none";
+    if (knowledgeList) knowledgeList.style.display = "";
+    renderKnowledgePage();
+  } else {
+    if (catTabs) catTabs.style.display = "";
+    if (signGrid) signGrid.style.display = "";
+    if (knowledgeList) knowledgeList.style.display = "none";
+    renderCategoryTabs();
+    renderSignGrid();
+  }
+}
+
+// ========== Knowledge Page Rendering ==========
+
+function renderKnowledgePage() {
+  const container = document.getElementById("knowledgeList");
+  if (!container) return;
+
+  if (typeof KNOWLEDGE_CATEGORIES === 'undefined' || typeof KNOWLEDGE_QUESTIONS === 'undefined') {
+    container.innerHTML = '<div class="no-results">知识库加载失败，请刷新页面重试</div>';
+    return;
+  }
+
+  const query = (currentSearch || "").trim().toLowerCase();
+
+  // Group questions by category
+  const catKeys = Object.keys(KNOWLEDGE_CATEGORIES);
+  const grouped = {};
+  for (let i = 0; i < catKeys.length; i++) {
+    const key = catKeys[i];
+    grouped[key] = KNOWLEDGE_QUESTIONS.filter(function (q) {
+      return q.category === key;
+    });
+  }
+
+  let html = "";
+
+  for (let c = 0; c < catKeys.length; c++) {
+    const key = catKeys[c];
+    const cat = KNOWLEDGE_CATEGORIES[key];
+    const questions = grouped[key] || [];
+
+    // Filter by search
+    let filteredQuestions = questions;
+    if (query) {
+      filteredQuestions = questions.filter(function (q) {
+        const matchQ = q.question.toLowerCase().indexOf(query) !== -1;
+        const matchExp = q.explanation ? q.explanation.toLowerCase().indexOf(query) !== -1 : false;
+        const matchOpt = q.options.some(function (o) { return o.toLowerCase().indexOf(query) !== -1; });
+        return matchQ || matchExp || matchOpt;
+      });
+    }
+
+    if (filteredQuestions.length === 0 && query) continue;
+
+    html +=
+      '<div class="knowledge-category-card" onclick="toggleKnowledgeCard(this)" tabindex="0" role="button"'
+      + ' aria-expanded="false"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleKnowledgeCard(this);}">'
+      + '<div class="knowledge-cat-header">'
+      + '<span class="knowledge-cat-icon" aria-hidden="true">' + cat.icon + '</span>'
+      + '<span class="knowledge-cat-name">' + cat.name + '</span>'
+      + '<span class="knowledge-cat-count">' + filteredQuestions.length + '条</span>'
+      + '<span class="knowledge-cat-arrow" aria-hidden="true">▼</span>'
+      + '</div>'
+      + '<div class="knowledge-points">';
+
+    for (let p = 0; p < filteredQuestions.length; p++) {
+      const q = filteredQuestions[p];
+      html +=
+        '<div class="knowledge-point">'
+        + '<div class="knowledge-point-title">' + q.question + '</div>'
+        + '<div class="knowledge-point-detail">' + q.explanation + '</div>'
+        + '</div>';
+    }
+
+    html += '</div></div>';
+  }
+
+  if (!html && query) {
+    container.innerHTML = '<div class="no-results">没有找到匹配的知识点</div>';
+    return;
+  }
+
+  container.innerHTML = html;
+}
+
+function toggleKnowledgeCard(card) {
+  const isOpen = card.classList.toggle("open");
+  card.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
 // ========== 学习模式：分类标签 ==========
 
 function renderCategoryTabs() {
@@ -224,7 +347,11 @@ document.addEventListener("DOMContentLoaded", function () {
       // Debounce rendering
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(function () {
-        renderSignGrid();
+        if (currentLearnMode === "knowledge") {
+          renderKnowledgePage();
+        } else {
+          renderSignGrid();
+        }
       }, 200);
     });
     // Clear button
@@ -233,7 +360,11 @@ document.addEventListener("DOMContentLoaded", function () {
         searchInput.value = "";
         currentSearch = "";
         searchClearBtn.style.display = 'none';
-        renderSignGrid();
+        if (currentLearnMode === "knowledge") {
+          renderKnowledgePage();
+        } else {
+          renderSignGrid();
+        }
         searchInput.focus();
       });
     }
