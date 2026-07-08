@@ -729,22 +729,23 @@ function closeWrongExpand() {
   for (var c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "block"; }
 }
 
+var _hdSwipeX = 0, _hdSwipeY = 0;
+function _hdSwipeStart(e) { _hdSwipeX = e.touches[0].clientX; _hdSwipeY = e.touches[0].clientY; }
+function _hdSwipeEnd(e) {
+  var dx = e.changedTouches[0].clientX - _hdSwipeX;
+  var dy = e.changedTouches[0].clientY - _hdSwipeY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < -30) navigateWrong(1);
+    else if (dx > 30) navigateWrong(-1);
+  }
+}
 function setupHdSwipe() {
   var card = document.getElementById("hdExpandedCard");
   if (!card) return;
-  var startX = 0, startY = 0;
-  card.addEventListener("touchstart", function (e) {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  }, { once: true });
-  card.addEventListener("touchend", function (e) {
-    var dx = e.changedTouches[0].clientX - startX;
-    var dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      if (dx < -30) navigateWrong(1);
-      else if (dx > 30) navigateWrong(-1);
-    }
-  }, { once: true });
+  card.removeEventListener("touchstart", _hdSwipeStart);
+  card.removeEventListener("touchend", _hdSwipeEnd);
+  card.addEventListener("touchstart", _hdSwipeStart);
+  card.addEventListener("touchend", _hdSwipeEnd);
 }
 
 function clearQuizHistory() {
@@ -1149,22 +1150,22 @@ function quizNavPrev() {
 
 // ========== 滑动手势 ==========
 
+var _qzSwipeX = 0, _qzSwipeY = 0;
+function _qzSwipeStart(e) { _qzSwipeX = e.touches[0].clientX; _qzSwipeY = e.touches[0].clientY; }
+function _qzSwipeEnd(e) {
+  var dx = e.changedTouches[0].clientX - _qzSwipeX;
+  var dy = e.changedTouches[0].clientY - _qzSwipeY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+    clearAutoAdvance();
+    if (dx < -40) quizNavNext();
+    else if (dx > 40) quizNavPrev();
+  }
+}
 function setupSwipe(card) {
-  var startX = 0, startY = 0;
-  card.addEventListener("touchstart", function (e) {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  }, { once: true });
-
-  card.addEventListener("touchend", function (e) {
-    var dx = e.changedTouches[0].clientX - startX;
-    var dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
-      clearAutoAdvance();
-      if (dx < -40) quizNavNext();  // 左滑 → 下一题
-      else if (dx > 40) quizNavPrev(); // 右滑 → 上一题
-    }
-  }, { once: true });
+  card.removeEventListener("touchstart", _qzSwipeStart);
+  card.removeEventListener("touchend", _qzSwipeEnd);
+  card.addEventListener("touchstart", _qzSwipeStart);
+  card.addEventListener("touchend", _qzSwipeEnd);
 }
 
 // ========== 渲染结果 ==========
