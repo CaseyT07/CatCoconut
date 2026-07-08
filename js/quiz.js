@@ -516,16 +516,16 @@ function renderQuizIntro() {
         wrongItemsHtml += '</div>';
       }
 
-      var histId = "hist_" + i;
       html +=
-        '<div class="history-item" onclick="toggleHistoryExpand(\'' + histId + '\')">' +
+        '<div class="history-item" onclick="showHistoryDetail(' + i + ')">' +
           '<div class="history-score" style="color:' + ringColor + '">' + h.score + '<span>分</span></div>' +
           '<div class="history-info">' +
             '<div class="history-date">' + modeLabel + ' · ' + h.date + '</div>' +
-            '<div class="history-detail">正确 ' + h.correct + ' / ' + h.total + ' 题 (' + pct + '%)</div>' +
-            '<div class="history-expand" id="' + histId + '" style="display:none">' + wrongItemsHtml + '</div>' +
+            '<div class="history-detail">正确 ' + h.correct + ' / ' + h.total + ' 题 (' + pct + '%)' +
+            (h.wrongItems && h.wrongItems.length ? ' · 错题 ' + h.wrongItems.length + ' 道' : '') +
+            '</div>' +
           '</div>' +
-          '<div class="history-arrow">▼</div>' +
+          '<div class="history-arrow">→</div>' +
         '</div>';
     }
 
@@ -540,14 +540,68 @@ function renderQuizIntro() {
   container.innerHTML = html;
 }
 
-function toggleHistoryExpand(id) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  if (el.style.display === "none") {
-    el.style.display = "block";
-  } else {
-    el.style.display = "none";
+function showHistoryDetail(index) {
+  var history = getQuizHistory();
+  var h = history[index];
+  if (!h) return;
+
+  var modeLabel = h.mode === "comprehensive" ? "📚 综合知识" : (h.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
+  var pct = Math.round(h.score / h.maxScore * 100);
+
+  var html =
+    '<div class="history-detail-page">' +
+      '<div class="hd-top-bar">' +
+        '<button class="hd-back-btn" onclick="renderQuizIntro()">← 返回</button>' +
+        '<span>' + modeLabel + '</span>' +
+        '<span style="font-size:12px;color:var(--text-muted)">' + h.date + '</span>' +
+      '</div>' +
+
+      '<div class="hd-score-section">' +
+        '<div class="hd-score">' + h.score + '<span>分</span></div>' +
+        '<div class="hd-stats">' +
+          '<div class="hd-stat"><span style="color:var(--success)">✓ ' + h.correct + '</span> 正确</div>' +
+          '<div class="hd-stat"><span style="color:var(--danger)">✗ ' + (h.total - h.correct) + '</span> 错误</div>' +
+          '<div class="hd-stat">' + pct + '%</div>' +
+        '</div>' +
+      '</div>';
+
+  if (h.wrongItems && h.wrongItems.length > 0) {
+    html += '<div class="hd-wrong-section"><div class="hd-wrong-title">✗ 错题回顾 (' + h.wrongItems.length + ' 题)</div>';
+
+    for (var wi = 0; wi < h.wrongItems.length; wi++) {
+      var wiData = h.wrongItems[wi];
+      if (typeof wiData === "string") {
+        html += '<div class="hd-wrong-item"><span>' + wiData + '</span></div>';
+      } else {
+        var detailId = "hd_detail_" + index + "_" + wi;
+        html +=
+          '<div class="hd-wrong-item" onclick="var e=document.getElementById(\'' + detailId + '\');e.style.display=e.style.display==\'none\'?\'block\':\'none\'">' +
+            '<div class="hd-wrong-name">' + (wiData.name || "") + '</div>' +
+            '<div class="hd-wrong-answer" style="display:flex;gap:8px;font-size:12px;margin-top:4px;">' +
+              (wiData.userAnswer ? '<span style="color:#dc2626">✗ 你答了: ' + wiData.userAnswer + '</span>' : '') +
+              (wiData.correctAnswer ? '<span style="color:#16a34a">✓ 答案: ' + wiData.correctAnswer + '</span>' : '') +
+            '</div>';
+        // 找原题获取完整解析
+        if (wiData.signId) {
+          for (var si = 0; si < TRAFFIC_SIGNS.length; si++) {
+            if (TRAFFIC_SIGNS[si].id === wiData.signId) {
+              html += '<div class="hd-wrong-exp" id="' + detailId + '" style="display:none"><div class="hd-exp-text">' + TRAFFIC_SIGNS[si].description + '</div></div>';
+              break;
+            }
+          }
+        } else if (wiData.type === "knowledge") {
+          html += '<div class="hd-wrong-exp" id="' + detailId + '" style="display:none"><div class="hd-exp-text">' + (wiData.question || "") + '</div></div>';
+        }
+        html += '<div class="hd-expand-hint">点击查看详情</div></div>';
+      }
+    }
+    html += '</div>';
   }
+
+  html += '</div>';
+
+  document.getElementById("quizContainer").innerHTML = html;
+  window.scrollTo(0, 0);
 }
 
 function clearQuizHistory() {
@@ -990,6 +1044,7 @@ function renderQuizResult() {
         wrongItems.push({
           name: qq.question.question.substring(0, 40),
           type: "knowledge",
+          knowledgeId: qq.question.id,
           question: qq.question.question,
           correctAnswer: qq.question.options[qq.question.answer],
           userAnswer: qq.userAnswer ? qq.userAnswer.name : ""
