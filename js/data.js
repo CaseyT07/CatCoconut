@@ -743,7 +743,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p15", category: "prohibition", name: "限速30",
-    img: "img/signs/p15.png",
     description: "最高速度限制为每小时30公里，车辆行驶速度不得超过此限值。常见于学校、居民区、施工区。",
     tip: "严格遵守限速标志，超速50%以上将面临严重处罚（扣12分）。",
     tags: ["限速", "30", "最高速度"],
@@ -755,7 +754,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p16", category: "prohibition", name: "限速50",
-    img: "img/signs/p16.png",
     description: "最高速度限制为每小时50公里，常见于城市道路和部分国道路段。",
     tip: "市区道路一般限速40-60km/h，根据道路条件和交通流量动态调整。",
     tags: ["限速", "50"],
@@ -767,7 +765,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p17", category: "prohibition", name: "限速80",
-    img: "img/signs/p17.png",
     description: "最高速度限制为每小时80公里，常见于国道、省道以及部分快速路段。",
     tip: "在高速公路上最低限速为60km/h，低于最低限速也会被处罚。",
     tags: ["限速", "80"],
@@ -779,7 +776,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p18", category: "prohibition", name: "限速100",
-    img: "img/signs/p18.png",
     description: "最高速度限制为每小时100公里，常见于高速公路一般路段。",
     tip: "高速公路最高限速120km/h，但根据路段不同可能限速100或110，注意观察标志。",
     tags: ["限速", "100"],
@@ -791,7 +787,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p19", category: "prohibition", name: "限速120",
-    img: "img/signs/p19.png",
     description: "最高速度限制为每小时120公里，为中国高速公路最高限速。",
     tip: "120km/h是法定最高限速，任何道路都不能超过此速度。安全车速是保持在自己能控制的范围。",
     tags: ["限速", "120", "最高限速"],
@@ -954,7 +949,6 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p33", category: "prohibition", name: "解除限制速度",
-    img: "img/signs/p33.png",
     description: "表示前方限速路段结束，从该标志之后车辆可以恢复到该道路的默认限速行驶。",
     tip: "解除限速不等于可以无限加速，最高速度仍受道路等级法定限速约束（城市50km/h，高速120km/h）。",
     tags: ["解除限速", "限速结束"],
