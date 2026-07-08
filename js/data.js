@@ -9,6 +9,7 @@ const CATEGORIES = {
   mandatory:  { id: "mandatory",   name: "指示标志", icon: "🔵", color: "#0066CC" },
   guide:      { id: "guide",       name: "指路标志", icon: "🧭", color: "#0066CC" },
   auxiliary:  { id: "auxiliary",   name: "辅助标志", icon: "ℹ️", color: "#FFFFFF" },
+  hand_signals:{ id: "hand_signals",name: "👮 交警手势", icon: "👮", color: "#1a237e" },
 };
 
 const TRAFFIC_SIGNS = [
@@ -1510,6 +1511,80 @@ const TRAFFIC_SIGNS = [
 // ============================================
 //   行车知识 Driving Tips
 // ============================================
+  // ========== 交警手势 Hand Signals ==========
+  {
+    id: "hs01", category: "hand_signals", name: "停止信号",
+    img: "img/knowledge/hand_signals/stop.png",
+    description: "交警左臂向前上方直伸，掌心向前，示意前方车辆停车。这是最基本的交通指挥手势，车辆必须立即停车。",
+    tip: "看到停止信号必须停车，不得强行通过。即使绿灯也要服从交警指挥。",
+    tags: ["停止", "停车", "交警手势"],
+    weight: 3,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">🛑</text></svg>`
+  },
+  {
+    id: "hs02", category: "hand_signals", name: "直行信号",
+    img: "img/knowledge/hand_signals/straight.png",
+    description: "交警双臂平伸，右臂向前摆动，准许左右两方直行车辆通行。左方车辆直行，右方车辆直行。",
+    tip: "直行信号下，左右方向的直行车辆可以通行，转弯车辆需要等待。",
+    tags: ["直行", "交警手势"],
+    weight: 3,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">⬆️</text></svg>`
+  },
+  {
+    id: "hs03", category: "hand_signals", name: "左转弯信号",
+    img: "img/knowledge/hand_signals/left_turn.png",
+    description: "交警右臂向前平伸，左臂向前下方摆动，准许左方左转弯车辆通行。",
+    tip: "左转弯信号只放行左方来车的左转弯，其他方向车辆需等待。",
+    tags: ["左转弯", "交警手势"],
+    weight: 3,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">⬅️</text></svg>`
+  },
+  {
+    id: "hs04", category: "hand_signals", name: "右转弯信号",
+    img: "img/knowledge/hand_signals/right_turn.png",
+    description: "交警左臂向前平伸，右臂向前下方摆动，准许右方右转弯车辆通行。",
+    tip: "右转弯信号只放行右方来车的右转弯，注意和直行信号区分。",
+    tags: ["右转弯", "交警手势"],
+    weight: 3,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">➡️</text></svg>`
+  },
+  {
+    id: "hs05", category: "hand_signals", name: "变道信号",
+    img: "img/knowledge/hand_signals/change_lane.png",
+    description: "交警右臂向前平伸，向左水平摆动，示意车辆变更车道行驶。",
+    tip: "变道信号要求车辆变换到指定车道，驾驶员应注意后方来车，确保安全变道。",
+    tags: ["变道", "交警手势"],
+    weight: 2,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">↔️</text></svg>`
+  },
+  {
+    id: "hs06", category: "hand_signals", name: "减速慢行信号",
+    img: "img/knowledge/hand_signals/slow_down.png",
+    description: "交警右臂向右前方平伸，向下摆动，示意车辆减速慢行。",
+    tip: "看到减速慢行信号应立即减速，观察前方路况，做好停车准备。",
+    tags: ["减速", "慢行", "交警手势"],
+    weight: 2,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">🔻</text></svg>`
+  },
+  {
+    id: "hs07", category: "hand_signals", name: "靠边停车信号",
+    img: "img/knowledge/hand_signals/pull_over.png",
+    description: "交警左臂向前上方直伸，右臂向前下方摆动，示意车辆靠边停车。",
+    tip: "靠边停车信号综合了停止和指引方向的手势，车辆应靠道路右侧停车。",
+    tags: ["靠边停车", "交警手势"],
+    weight: 3,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">🅿️</text></svg>`
+  },
+  {
+    id: "hs08", category: "hand_signals", name: "左转弯待转信号",
+    img: "img/knowledge/hand_signals/left_turn_wait.png",
+    description: "交警左臂向左下方平伸，右臂向左水平摆动，准许左方左转弯车辆进入路口等待转弯。",
+    tip: "左转弯待转信号允许车辆进入路口等待，但不等于可以直接左转，需等待后续信号。",
+    tags: ["左转弯待转", "交警手势"],
+    weight: 2,
+    svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="12" fill="#1a237e"/><text x="50" y="62" text-anchor="middle" font-size="40" fill="white">↖️</text></svg>`
+  },
+
 const DRIVING_TIPS = [
   {
     category: "新手上路",
