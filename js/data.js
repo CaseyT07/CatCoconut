@@ -949,6 +949,7 @@ const TRAFFIC_SIGNS = [
   },
   {
     id: "p33", category: "prohibition", name: "解除限制速度",
+    img: "img/signs/p33.png",
     description: "表示前方限速路段结束，从该标志之后车辆可以恢复到该道路的默认限速行驶。",
     tip: "解除限速不等于可以无限加速，最高速度仍受道路等级法定限速约束（城市50km/h，高速120km/h）。",
     tags: ["解除限速", "限速结束"],
