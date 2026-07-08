@@ -1,18 +1,28 @@
-var CACHE_NAME = "traffic-signs-v5";
-var urlsToCache = [
-  "index.html", "manifest.json",
-  "css/style.css",
-  "js/data.js", "js/quiz.js", "js/app.js", "js/knowledge.js",
-  "icons/icon-192.png", "icons/icon-512.png"
-];
+var CACHE_NAME = "traffic-signs-v6";
 
-self.addEventListener("install", function (event) {
-  event.waitUntil(caches.open(CACHE_NAME).then(function (cache) {
-    return cache.addAll(urlsToCache);
-  }));
-  self.skipWaiting();
+// Cache-first: 缓存优先，网络做后备，确保 PWA 稳定打开
+self.addEventListener("fetch", function (event) {
+  event.respondWith(
+    caches.match(event.request).then(function (cached) {
+      if (cached) return cached;
+      return fetch(event.request).then(function (response) {
+        // 只缓存成功的 GET 请求
+        if (response.status === 200 && event.request.method === "GET") {
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) {
+            cache.put(event.request, clone);
+          });
+        }
+        return response;
+      }).catch(function () {
+        // 网络失败且无缓存，返回空（避免白屏）
+        return new Response("", { status: 200 });
+      });
+    })
+  );
 });
 
+// 激活时清理旧缓存
 self.addEventListener("activate", function (event) {
   event.waitUntil(
     caches.keys().then(function (names) {
@@ -22,19 +32,4 @@ self.addEventListener("activate", function (event) {
     })
   );
   self.clients.claim();
-});
-
-// Network-first: always try network, fall back to cache
-self.addEventListener("fetch", function (event) {
-  event.respondWith(
-    fetch(event.request).then(function (response) {
-      var clone = response.clone();
-      caches.open(CACHE_NAME).then(function (cache) {
-        cache.put(event.request, clone);
-      });
-      return response;
-    }).catch(function () {
-      return caches.match(event.request);
-    })
-  );
 });
