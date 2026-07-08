@@ -488,7 +488,20 @@ function renderQuizIntro() {
       if (h.wrongItems && h.wrongItems.length > 0) {
         wrongItemsHtml = '<div class="history-wrong-list">';
         for (var wi = 0; wi < h.wrongItems.length; wi++) {
-          wrongItemsHtml += '<span class="history-wrong-tag">' + h.wrongItems[wi] + '</span>';
+          var wiData = h.wrongItems[wi];
+          if (typeof wiData === "string") {
+            wrongItemsHtml += '<div class="history-wrong-detail"><span class="history-wrong-tag">' + wiData + '</span></div>';
+          } else {
+            wrongItemsHtml += '<div class="history-wrong-detail">' +
+              '<div class="history-wrong-tag">' + (wiData.name || "") + '</div>';
+            if (wiData.userAnswer) {
+              wrongItemsHtml += '<div style="font-size:11px;color:#dc2626;margin-top:2px;">✗ 你答了: ' + wiData.userAnswer + '</div>';
+            }
+            if (wiData.correctAnswer) {
+              wrongItemsHtml += '<div style="font-size:11px;color:#16a34a;">✓ 正确答案: ' + wiData.correctAnswer + '</div>';
+            }
+            wrongItemsHtml += '</div>';
+          }
         }
         wrongItemsHtml += '</div>';
       }
@@ -962,9 +975,15 @@ function renderQuizResult() {
     var qq = quizState.questions[i];
     if (qq.userAnswer && !qq.userAnswer.isCorrect) {
       if (qq.type === "sign") {
-        wrongItems.push(qq.sign.name);
+        wrongItems.push({ name: qq.sign.name, type: "sign", signId: qq.sign.id });
       } else if (qq.type === "knowledge") {
-        wrongItems.push(qq.question.question.substring(0, 30) + "...");
+        wrongItems.push({
+          name: qq.question.question.substring(0, 40),
+          type: "knowledge",
+          question: qq.question.question,
+          correctAnswer: qq.question.options[qq.question.answer],
+          userAnswer: qq.userAnswer ? qq.userAnswer.name : ""
+        });
       }
     }
   }
@@ -1138,9 +1157,17 @@ function renderWrongPage() {
             '</div>' +
           '</div>';
       } else if (item.type === "knowledge") {
+        var kqImg = "";
+        for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
+          if (KNOWLEDGE_QUESTIONS[ki].id === item.knowledgeId && KNOWLEDGE_QUESTIONS[ki].image) {
+            kqImg = KNOWLEDGE_QUESTIONS[ki].image;
+            break;
+          }
+        }
         html +=
           '<div class="wrong-item">' +
             '<div class="wrong-item-header">' +
+              (kqImg ? '<div class="wrong-item-img" style="width:64px;height:64px;">' + kqImg + '</div>' : '') +
               '<div class="wrong-item-info" style="flex:1">' +
                 '<div class="wrong-item-question">' + (item.questionText || "") + '</div>' +
                 '<div class="wrong-item-correct">✓ ' + (item.correctAnswer || "") + '</div>' +
