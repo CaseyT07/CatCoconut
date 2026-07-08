@@ -52,7 +52,7 @@ function renderCategoryTabs() {
   var tabsContainer = document.getElementById("categoryTabs");
   var html = '<button class="category-tab' + (currentCategory === "all" ? " active" : "") + '" onclick="filterCategory(\'all\')">全部</button>';
 
-  var catKeys = ["warning", "prohibition", "mandatory", "guide", "auxiliary"];
+  var catKeys = ["warning", "prohibition", "mandatory", "guide", "auxiliary", "hand_signals"];
   for (var i = 0; i < catKeys.length; i++) {
     var k = catKeys[i];
     var c = CATEGORIES[k];
