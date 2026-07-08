@@ -1,15 +1,15 @@
 // ============================================
-//   刷题引擎 & 错题管理
+//   刷题引擎 & 错题管理 (v2 — improved)
 //   双模式：图片标识 / 综合知识
 // ============================================
 
-var QUIZ_MODE = null; // "image" | "comprehensive"
+let QUIZ_MODE = null; // "image" | "comprehensive"
 
-var IMAGE_QUIZ_COUNT = 20;
-var COMPREHENSIVE_QUIZ_COUNT = 30;
-var POINTS_PER_QUESTION = 5;
+const IMAGE_QUIZ_COUNT = 20;
+const COMPREHENSIVE_QUIZ_COUNT = 30;
+const POINTS_PER_QUESTION = 5;
 
-var quizState = {
+let quizState = {
   mode: null,
   questions: [],
   currentIndex: 0,
@@ -22,9 +22,9 @@ var quizState = {
 
 function getWrongList(mode) {
   mode = mode || QUIZ_MODE || "image";
-  var key = "traffic_wrong_list_" + mode;
+  const key = "traffic_wrong_list_" + mode;
   try {
-    var raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : [];
   } catch (e) {
     return [];
@@ -33,25 +33,27 @@ function getWrongList(mode) {
 
 function saveWrongList(list, mode) {
   mode = mode || QUIZ_MODE || "image";
-  var key = "traffic_wrong_list_" + mode;
+  const key = "traffic_wrong_list_" + mode;
   try {
     localStorage.setItem(key, JSON.stringify(list));
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Failed to save wrong list:", e);
+  }
 }
 
 function addWrongAnswer(questionData) {
-  var mode = quizState.mode || "image";
+  const mode = quizState.mode || "image";
   // 错题复习模式下不重复记录
   if (mode === "wrong") return;
-  var list = getWrongList(mode);
+  const list = getWrongList(mode);
 
   // 检查是否已存在相同题目，存在则仅增加计数
-  var dupKey = questionData.sign
+  const dupKey = questionData.sign
     ? ("sign_" + questionData.sign.id)
     : ("knowledge_" + (questionData.question ? questionData.question.id : ""));
-  var existing = null;
-  for (var i = 0; i < list.length; i++) {
-    var ek = list[i].type === "sign"
+  let existing = null;
+  for (let i = 0; i < list.length; i++) {
+    const ek = list[i].type === "sign"
       ? ("sign_" + (list[i].signId || ""))
       : ("knowledge_" + (list[i].knowledgeId || ""));
     if (ek === dupKey) { existing = list[i]; break; }
@@ -64,7 +66,7 @@ function addWrongAnswer(questionData) {
       existing.userAnswer = questionData.userAnswer.name || questionData.userAnswer;
     }
   } else {
-    var entry = {
+    const entry = {
       time: new Date().toLocaleString("zh-CN"),
       mode: mode,
       wrongCount: 1,
@@ -83,7 +85,6 @@ function addWrongAnswer(questionData) {
       entry.questionText = questionData.question.question;
       entry.correctAnswer = questionData.question.options[questionData.question.answer];
       entry.category = questionData.question.category;
-      // 交警手势存图片名
       if (questionData.question.category === "hand_signals" && questionData.question.image) {
         entry.handImage = questionData.question.image;
       }
@@ -108,7 +109,7 @@ function clearWrongList(mode) {
 
 function getQuizHistory() {
   try {
-    var raw = localStorage.getItem("traffic_quiz_history");
+    const raw = localStorage.getItem("traffic_quiz_history");
     return raw ? JSON.parse(raw) : [];
   } catch (e) {
     return [];
@@ -116,10 +117,10 @@ function getQuizHistory() {
 }
 
 function saveQuizHistory(record) {
-  var history = getQuizHistory();
+  let history = getQuizHistory();
   // 去重：如果最近一条记录和当前同模式、同时间，跳过
   if (history.length > 0) {
-    var last = history[0];
+    const last = history[0];
     if (last.date === record.date && last.mode === record.mode && last.score === record.score) {
       return;
     }
@@ -128,7 +129,9 @@ function saveQuizHistory(record) {
   if (history.length > 50) history = history.slice(0, 50);
   try {
     localStorage.setItem("traffic_quiz_history", JSON.stringify(history));
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Failed to save quiz history:", e);
+  }
 }
 
 // ========== 答题状态存取 ==========
@@ -141,15 +144,15 @@ function _stateKey(mode) {
 function saveQuizState() {
   if (!quizState.questions.length) return;
   if (quizState.currentIndex >= quizState.questions.length) return;
-  var state = {
+  const state = {
     mode: quizState.mode,
     currentIndex: quizState.currentIndex,
     correctCount: quizState.correctCount,
     wrongCount: quizState.wrongCount,
     questionData: [],
   };
-  for (var i = 0; i < quizState.questions.length; i++) {
-    var q = quizState.questions[i];
+  for (let i = 0; i < quizState.questions.length; i++) {
+    const q = quizState.questions[i];
     state.questionData.push({
       signId: q.sign ? q.sign.id : null,
       knowledgeId: q.question ? q.question.id : null,
@@ -160,13 +163,15 @@ function saveQuizState() {
   }
   try {
     localStorage.setItem(_stateKey(), JSON.stringify(state));
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Failed to save quiz state:", e);
+  }
 }
 
 function getSavedQuizState(mode) {
   mode = mode || "image";
   try {
-    var raw = localStorage.getItem(_stateKey(mode));
+    const raw = localStorage.getItem(_stateKey(mode));
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -179,11 +184,10 @@ function clearQuizState(mode) {
 }
 
 function getAnySavedState() {
-  // 返回所有 mode 的保存状态
-  var modes = ["image", "comprehensive", "wrong"];
-  var results = [];
-  for (var i = 0; i < modes.length; i++) {
-    var s = getSavedQuizState(modes[i]);
+  const modes = ["image", "comprehensive", "wrong"];
+  const results = [];
+  for (let i = 0; i < modes.length; i++) {
+    const s = getSavedQuizState(modes[i]);
     if (s && s.questionData && s.currentIndex < s.questionData.length) {
       s._mode = modes[i];
       results.push(s);
@@ -195,10 +199,10 @@ function getAnySavedState() {
 // ========== 工具函数 ==========
 
 function shuffle(arr) {
-  var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = a[i];
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i];
     a[i] = a[j];
     a[j] = tmp;
   }
@@ -208,18 +212,18 @@ function shuffle(arr) {
 // ========== 随机抽题 ==========
 
 function weightedPickSigns(count) {
-  var pool = [];
-  for (var i = 0; i < TRAFFIC_SIGNS.length; i++) {
-    var w = TRAFFIC_SIGNS[i].weight || 2;
-    for (var j = 0; j < w; j++) {
+  const pool = [];
+  for (let i = 0; i < TRAFFIC_SIGNS.length; i++) {
+    const w = TRAFFIC_SIGNS[i].weight || 2;
+    for (let j = 0; j < w; j++) {
       pool.push(TRAFFIC_SIGNS[i]);
     }
   }
-  var shuffled = shuffle(pool);
-  var selected = [];
-  var seen = {};
-  for (var k = 0; k < shuffled.length && selected.length < count; k++) {
-    var sign = shuffled[k];
+  const shuffled = shuffle(pool);
+  const selected = [];
+  const seen = {};
+  for (let k = 0; k < shuffled.length && selected.length < count; k++) {
+    const sign = shuffled[k];
     if (!seen[sign.id]) {
       seen[sign.id] = true;
       selected.push(sign);
@@ -229,11 +233,11 @@ function weightedPickSigns(count) {
 }
 
 function generateSignQuestion(sign) {
-  var others = TRAFFIC_SIGNS.filter(function (s) {
+  const others = TRAFFIC_SIGNS.filter(function (s) {
     return s.id !== sign.id;
   });
-  var wrongs = shuffle(others).slice(0, 3);
-  var options = [
+  const wrongs = shuffle(others).slice(0, 3);
+  const options = [
     { name: sign.name, isCorrect: true },
     { name: wrongs[0].name, isCorrect: false },
     { name: wrongs[1].name, isCorrect: false },
@@ -248,8 +252,8 @@ function generateSignQuestion(sign) {
 }
 
 function generateKnowledgeQuestion(kq) {
-  var options = [];
-  for (var i = 0; i < kq.options.length; i++) {
+  const options = [];
+  for (let i = 0; i < kq.options.length; i++) {
     options.push({
       name: kq.options[i],
       isCorrect: (i === kq.answer),
@@ -266,44 +270,43 @@ function generateKnowledgeQuestion(kq) {
 // ========== 出题 ==========
 
 function generateImageQuiz() {
-  var signs = weightedPickSigns(IMAGE_QUIZ_COUNT);
+  const signs = weightedPickSigns(IMAGE_QUIZ_COUNT);
   return signs.map(function (sign) {
     return generateSignQuestion(sign);
   });
 }
 
 function generateComprehensiveQuiz() {
-  var questions = [];
+  const questions = [];
 
   // 8 道标志识别题
-  var signs = weightedPickSigns(8);
-  for (var i = 0; i < signs.length; i++) {
+  const signs = weightedPickSigns(8);
+  for (let i = 0; i < signs.length; i++) {
     questions.push(generateSignQuestion(signs[i]));
   }
 
   // 安全检查：知识库是否已加载
   if (typeof KNOWLEDGE_CATEGORIES === 'undefined' || typeof KNOWLEDGE_QUESTIONS === 'undefined') {
-    // 知识库未加载，剩下的题全用标志识别
-    var extraSigns = weightedPickSigns(22);
-    for (var e = 0; e < extraSigns.length; e++) {
+    const extraSigns = weightedPickSigns(22);
+    for (let e = 0; e < extraSigns.length; e++) {
       questions.push(generateSignQuestion(extraSigns[e]));
     }
     return shuffle(questions);
   }
 
   // 22 道知识题，均匀分布在各模块
-  var catKeys = Object.keys(KNOWLEDGE_CATEGORIES);
-  var perCat = Math.floor(22 / catKeys.length);
-  var extra = 22 - perCat * catKeys.length;
+  const catKeys = Object.keys(KNOWLEDGE_CATEGORIES);
+  const perCat = Math.floor(22 / catKeys.length);
+  const extra = 22 - perCat * catKeys.length;
 
-  for (var c = 0; c < catKeys.length; c++) {
-    var catId = catKeys[c];
-    var catQuestions = KNOWLEDGE_QUESTIONS.filter(function (q) {
+  for (let c = 0; c < catKeys.length; c++) {
+    const catId = catKeys[c];
+    const catQuestions = KNOWLEDGE_QUESTIONS.filter(function (q) {
       return q.category === catId;
     });
-    var pickCount = perCat + (c < extra ? 1 : 0);
-    var picked = shuffle(catQuestions).slice(0, pickCount);
-    for (var p = 0; p < picked.length; p++) {
+    const pickCount = perCat + (c < extra ? 1 : 0);
+    const picked = shuffle(catQuestions).slice(0, pickCount);
+    for (let p = 0; p < picked.length; p++) {
       questions.push(generateKnowledgeQuestion(picked[p]));
     }
   }
@@ -314,32 +317,31 @@ function generateComprehensiveQuiz() {
 // ========== 恢复答题 ==========
 
 function restoreQuiz(savedState) {
-  var idMap = {};
-  for (var i = 0; i < TRAFFIC_SIGNS.length; i++) {
+  const idMap = {};
+  for (let i = 0; i < TRAFFIC_SIGNS.length; i++) {
     idMap[TRAFFIC_SIGNS[i].id] = TRAFFIC_SIGNS[i];
   }
 
-  var knowledgeMap = {};
-  for (var j = 0; j < KNOWLEDGE_QUESTIONS.length; j++) {
+  const knowledgeMap = {};
+  for (let j = 0; j < KNOWLEDGE_QUESTIONS.length; j++) {
     knowledgeMap[KNOWLEDGE_QUESTIONS[j].id] = KNOWLEDGE_QUESTIONS[j];
   }
 
-  var questions = [];
-  for (var k = 0; k < savedState.questionData.length; k++) {
-    var qd = savedState.questionData[k];
-    var q;
+  const questions = [];
+  for (let k = 0; k < savedState.questionData.length; k++) {
+    const qd = savedState.questionData[k];
+    let q;
     if (qd.signId) {
-      var sign = idMap[qd.signId];
+      const sign = idMap[qd.signId];
       if (!sign) return null;
       q = generateSignQuestion(sign);
     } else if (qd.knowledgeId) {
-      var kq = knowledgeMap[qd.knowledgeId];
+      const kq = knowledgeMap[qd.knowledgeId];
       if (!kq) return null;
       q = generateKnowledgeQuestion(kq);
     } else {
       return null;
     }
-    // 恢复已回答状态
     if (qd.answered) {
       q.answered = true;
       q.userAnswer = { isCorrect: !!qd.userAnswerCorrect, name: qd.userAnswerName || "" };
@@ -359,10 +361,10 @@ function restoreQuiz(savedState) {
 // ========== 续答弹窗 ==========
 
 function showResumeDialog(savedState) {
-  var modeLabel = savedState.mode === "comprehensive" ? "综合知识" : (savedState.mode === "wrong" ? "错题复习" : "图片标识");
-  var total = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
-  var idx = savedState.currentIndex + 1;
-  var container = document.getElementById("quizContainer");
+  const modeLabel = savedState.mode === "comprehensive" ? "综合知识" : (savedState.mode === "wrong" ? "错题复习" : "图片标识");
+  const total = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
+  const idx = savedState.currentIndex + 1;
+  const container = document.getElementById("quizContainer");
   container.innerHTML =
     '<div class="resume-dialog">' +
       '<div class="resume-dialog-card">' +
@@ -378,7 +380,7 @@ function showResumeDialog(savedState) {
 }
 
 function resumeQuiz(mode) {
-  var savedState = getSavedQuizState(mode);
+  const savedState = getSavedQuizState(mode);
   if (!savedState) {
     renderQuizIntro();
     return;
@@ -406,22 +408,22 @@ function discardAndStart() {
 
 function renderQuizIntro() {
   QUIZ_MODE = null;
-  var container = document.getElementById("quizContainer");
-  var history = getQuizHistory();
-  var savedStates = getAnySavedState();
+  const container = document.getElementById("quizContainer");
+  const history = getQuizHistory();
+  const savedStates = getAnySavedState();
 
-  var html = '<div class="quiz-intro">';
+  let html = '<div class="quiz-intro">';
 
   // 多个续答横幅（每个模式一个）
-  for (var si = 0; si < savedStates.length; si++) {
-    var savedState = savedStates[si];
-    var sMode = savedState.mode === "comprehensive" ? "📚 综合知识" : (savedState.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
-    var sTotal = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
-    var sIdx = savedState.currentIndex;
+  for (let si = 0; si < savedStates.length; si++) {
+    const savedState = savedStates[si];
+    const sMode = savedState.mode === "comprehensive" ? "📚 综合知识" : (savedState.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
+    const sTotal = savedState.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT : IMAGE_QUIZ_COUNT;
+    const sIdx = savedState.currentIndex;
     html +=
       '<div class="resume-banner">' +
         '<div class="resume-banner-info">' +
-          '<div class="resume-banner-icon">📝</div>' +
+          '<div class="resume-banner-icon" aria-hidden="true">📝</div>' +
           '<div>' +
             '<div class="resume-banner-title">未完成的答题 — ' + sMode + '</div>' +
             '<div class="resume-banner-meta">已答 <b>' + sIdx + '</b> / ' + sTotal + ' 题 · 正确 <b>' + (savedState.correctCount || 0) + '</b> 题</div>' +
@@ -435,46 +437,52 @@ function renderQuizIntro() {
   }
 
   html +=
-      '<div class="quiz-intro-icon">✏️</div>' +
+      '<div class="quiz-intro-icon" aria-hidden="true">✏️</div>' +
       '<h2>选择刷题模式</h2>';
 
   // Mode 1: Image only
   html +=
-    '<div class="quiz-mode-card" onclick="startQuiz(\'image\')">' +
-      '<div class="quiz-mode-icon">🚫</div>' +
+    '<div class="quiz-mode-card" onclick="startQuiz(\'image\')" tabindex="0" role="button"'
+    + ' aria-label="图片标识模式，' + IMAGE_QUIZ_COUNT + '题"' +
+    ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();startQuiz(\'image\');}">' +
+      '<div class="quiz-mode-icon" aria-hidden="true">🚫</div>' +
       '<div class="quiz-mode-info">' +
         '<div class="quiz-mode-title">图片标识</div>' +
         '<div class="quiz-mode-desc">只看交通标志图，选择正确名称</div>' +
         '<div class="quiz-mode-meta">' + IMAGE_QUIZ_COUNT + ' 题 · ' + (IMAGE_QUIZ_COUNT * POINTS_PER_QUESTION) + ' 分</div>' +
       '</div>' +
-      '<div class="quiz-mode-arrow">→</div>' +
+      '<div class="quiz-mode-arrow" aria-hidden="true">→</div>' +
     '</div>';
 
   // Mode 2: Comprehensive
   html +=
-    '<div class="quiz-mode-card" onclick="startQuiz(\'comprehensive\')">' +
-      '<div class="quiz-mode-icon">📚</div>' +
+    '<div class="quiz-mode-card" onclick="startQuiz(\'comprehensive\')" tabindex="0" role="button"'
+    + ' aria-label="综合知识模式，' + COMPREHENSIVE_QUIZ_COUNT + '题，9大模块"' +
+    ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();startQuiz(\'comprehensive\');}">' +
+      '<div class="quiz-mode-icon" aria-hidden="true">📚</div>' +
       '<div class="quiz-mode-info">' +
         '<div class="quiz-mode-title">综合知识</div>' +
         '<div class="quiz-mode-desc">标志识别 + 交警手势 + 标线 + 信号灯 + 法规处罚</div>' +
         '<div class="quiz-mode-meta">' + COMPREHENSIVE_QUIZ_COUNT + ' 题 · ' + (COMPREHENSIVE_QUIZ_COUNT * POINTS_PER_QUESTION) + ' 分 · 9大模块</div>' +
       '</div>' +
-      '<div class="quiz-mode-arrow">→</div>' +
+      '<div class="quiz-mode-arrow" aria-hidden="true">→</div>' +
     '</div>';
 
   // Mode 3: Wrong review
-  var wrongImg = getWrongList("image");
-  var wrongComp = getWrongList("comprehensive");
-  var wrongTotal = wrongImg.concat(wrongComp).length;
+  const wrongImg = getWrongList("image");
+  const wrongComp = getWrongList("comprehensive");
+  const wrongTotal = wrongImg.concat(wrongComp).length;
   html +=
-    '<div class="quiz-mode-card" onclick="startWrongQuiz()" style="border-color:#f59e0b;">' +
-      '<div class="quiz-mode-icon">🔄</div>' +
+    '<div class="quiz-mode-card" onclick="startWrongQuiz()" style="border-color:#f59e0b;" tabindex="0" role="button"'
+    + ' aria-label="错题复习"' +
+    ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();startWrongQuiz();}">' +
+      '<div class="quiz-mode-icon" aria-hidden="true">🔄</div>' +
       '<div class="quiz-mode-info">' +
         '<div class="quiz-mode-title">错题复习</div>' +
         '<div class="quiz-mode-desc">反复练习做错的题目，强化记忆</div>' +
         '<div class="quiz-mode-meta">' + (wrongTotal > 0 ? '共 <b>' + wrongTotal + '</b> 道错题 · ' : '暂无错题 · ') + '最多 20 题</div>' +
       '</div>' +
-      '<div class="quiz-mode-arrow">→</div>' +
+      '<div class="quiz-mode-arrow" aria-hidden="true">→</div>' +
     '</div>';
 
   html += '<p style="color:var(--text-secondary);font-size:13px;margin-top:16px;">每题 <b>' + POINTS_PER_QUESTION + '</b> 分，不限时间，仔细作答</p>';
@@ -485,43 +493,23 @@ function renderQuizIntro() {
     html += '<div class="history-title">📊 历史成绩</div>';
     html += '<div class="history-list">';
 
-    var maxShow = Math.min(history.length, 8);
-    for (var i = 0; i < maxShow; i++) {
-      var h = history[i];
-      var maxScore = h.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT * POINTS_PER_QUESTION : IMAGE_QUIZ_COUNT * POINTS_PER_QUESTION;
-      var pct = Math.round(h.score / maxScore * 100);
-      var ringColor;
+    const maxShow = Math.min(history.length, 8);
+    for (let i = 0; i < maxShow; i++) {
+      const h = history[i];
+      const maxScore = h.mode === "comprehensive" ? COMPREHENSIVE_QUIZ_COUNT * POINTS_PER_QUESTION : IMAGE_QUIZ_COUNT * POINTS_PER_QUESTION;
+      const pct = Math.round(h.score / maxScore * 100);
+      let ringColor;
       if (pct >= 90) ringColor = "var(--success)";
       else if (pct >= 70) ringColor = "var(--primary)";
       else if (pct >= 50) ringColor = "var(--warning)";
       else ringColor = "var(--danger)";
 
-      var modeLabel = h.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
-
-      var wrongItemsHtml = "";
-      if (h.wrongItems && h.wrongItems.length > 0) {
-        wrongItemsHtml = '<div class="history-wrong-list">';
-        for (var wi = 0; wi < h.wrongItems.length; wi++) {
-          var wiData = h.wrongItems[wi];
-          if (typeof wiData === "string") {
-            wrongItemsHtml += '<div class="history-wrong-detail"><span class="history-wrong-tag">' + wiData + '</span></div>';
-          } else {
-            wrongItemsHtml += '<div class="history-wrong-detail">' +
-              '<div class="history-wrong-tag">' + (wiData.name || "") + '</div>';
-            if (wiData.userAnswer) {
-              wrongItemsHtml += '<div style="font-size:11px;color:#dc2626;margin-top:2px;">✗ 你答了: ' + wiData.userAnswer + '</div>';
-            }
-            if (wiData.correctAnswer) {
-              wrongItemsHtml += '<div style="font-size:11px;color:#16a34a;">✓ 正确答案: ' + wiData.correctAnswer + '</div>';
-            }
-            wrongItemsHtml += '</div>';
-          }
-        }
-        wrongItemsHtml += '</div>';
-      }
+      const modeLabel = h.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
 
       html +=
-        '<div class="history-item" onclick="showHistoryDetail(' + i + ')">' +
+        '<div class="history-item" onclick="showHistoryDetail(' + i + ')" tabindex="0" role="button"'
+        + ' aria-label="查看历史成绩 ' + (i+1) + '"'
+        + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();showHistoryDetail(' + i + ');}">' +
           '<div class="history-score" style="color:' + ringColor + '">' + h.score + '<span>分</span></div>' +
           '<div class="history-info">' +
             '<div class="history-date">' + modeLabel + ' · ' + h.date + '</div>' +
@@ -529,7 +517,7 @@ function renderQuizIntro() {
             (h.wrongItems && h.wrongItems.length ? ' · 错题 ' + h.wrongItems.length + ' 道' : '') +
             '</div>' +
           '</div>' +
-          '<div class="history-arrow">→</div>' +
+          '<div class="history-arrow" aria-hidden="true">→</div>' +
         '</div>';
     }
 
@@ -537,22 +525,36 @@ function renderQuizIntro() {
       html += '<div class="history-more">仅显示最近 8 条，共 ' + history.length + ' 条记录</div>';
     }
 
-    html += '<button class="btn-clear btn-clear-history" onclick="clearQuizHistory()">清空历史记录</button>';
+    html += '<button class="btn-clear btn-clear-history" onclick="clearQuizHistoryWithConfirm()">清空历史记录</button>';
     html += '</div></div>';
   }
 
   container.innerHTML = html;
 }
 
+function clearQuizHistoryWithConfirm() {
+  showConfirm('清空历史记录', '确定要删除所有历史成绩吗？此操作不可撤销。', '清空', '取消', function () {
+    clearQuizHistory();
+    showToast('历史记录已清空');
+  });
+}
+
+function clearAllWrongAnswersWithConfirm() {
+  showConfirm('清空错题记录', '确定要删除所有错题记录吗？此操作不可撤销。', '确认删除', '取消', function () {
+    clearAllWrongAnswers();
+    showToast('错题记录已清空');
+  });
+}
+
 function showHistoryDetail(index) {
-  var history = getQuizHistory();
-  var h = history[index];
+  const history = getQuizHistory();
+  const h = history[index];
   if (!h) return;
 
-  var modeLabel = h.mode === "comprehensive" ? "📚 综合知识" : (h.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
-  var pct = Math.round(h.score / h.maxScore * 100);
+  const modeLabel = h.mode === "comprehensive" ? "📚 综合知识" : (h.mode === "wrong" ? "🔄 错题复习" : "🚫 图片标识");
+  const pct = Math.round(h.score / h.maxScore * 100);
 
-  var html =
+  let html =
     '<div class="history-detail-page">' +
       '<div class="hd-top-bar">' +
         '<button class="hd-back-btn" onclick="renderQuizIntro()">← 返回</button>' +
@@ -572,16 +574,17 @@ function showHistoryDetail(index) {
   if (h.wrongItems && h.wrongItems.length > 0) {
     html += '<div class="hd-wrong-section"><div class="hd-wrong-title">✗ 错题回顾 (' + h.wrongItems.length + ' 题)</div>';
 
-    for (var wi = 0; wi < h.wrongItems.length; wi++) {
-      var wiData = h.wrongItems[wi];
+    for (let wi = 0; wi < h.wrongItems.length; wi++) {
+      const wiData = h.wrongItems[wi];
       if (typeof wiData === "string") {
-        html += '<div class="hd-wrong-collapsed" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')">' +
+        html += '<div class="hd-wrong-collapsed" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')" tabindex="0" role="button"'
+          + ' onkeydown="if(event.key===\'Enter\'){expandWrongDetail(\'' + index + '\', ' + wi + ');}">' +
           '<div class="hd-wrong-name">' + wiData + '</div>' +
           '<div class="hd-expand-hint">点击查看详情</div></div>';
       } else {
-        // 折叠状态：只显示题干 + 答案摘要
         html +=
-          '<div class="hd-wrong-collapsed" id="hd_collapsed_' + wi + '" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')">' +
+          '<div class="hd-wrong-collapsed" id="hd_collapsed_' + wi + '" onclick="expandWrongDetail(\'' + index + '\', ' + wi + ')" tabindex="0" role="button"'
+          + ' onkeydown="if(event.key===\'Enter\'){expandWrongDetail(\'' + index + '\', ' + wi + ');}">' +
             '<div class="hd-wrong-name">' + (wiData.name || wiData.question || "") + '</div>' +
             '<div class="hd-wrong-answer">' +
               (wiData.userAnswer ? '<span style="color:#dc2626">✗ 你答了: ' + wiData.userAnswer + '</span>' : '') +
@@ -591,7 +594,6 @@ function showHistoryDetail(index) {
           '</div>';
       }
     }
-    // 展开区（默认隐藏）
     html += '<div class="hd-expanded-zone" id="hdExpandedZone" style="display:none"></div>';
     html += '</div>';
   }
@@ -603,59 +605,59 @@ function showHistoryDetail(index) {
 }
 
 // 当前展开的错题状态
-var _hdState = { historyIndex: null, wrongIndex: 0, total: 0 };
+let _hdState = { historyIndex: null, wrongIndex: 0, total: 0 };
 
 function expandWrongDetail(historyIndex, wi) {
-  var history = getQuizHistory();
-  var h = history[historyIndex];
+  const history = getQuizHistory();
+  const h = history[historyIndex];
   if (!h || !h.wrongItems) return;
   _hdState = { historyIndex: historyIndex, wrongIndex: wi, total: h.wrongItems.length };
   renderExpandedWrong(wi);
 }
 
 function renderExpandedWrong(wi) {
-  var history = getQuizHistory();
-  var h = history[_hdState.historyIndex];
+  const history = getQuizHistory();
+  const h = history[_hdState.historyIndex];
   if (!h || !h.wrongItems) return;
-  var wiData = h.wrongItems[wi];
+  const wiData = h.wrongItems[wi];
   if (!wiData || typeof wiData === "string") return;
 
-  var isFirst = wi <= 0;
-  var isLast = wi >= _hdState.total - 1;
-  var qCard = "";
+  const isFirst = wi <= 0;
+  const isLast = wi >= _hdState.total - 1;
+  let qCard = "";
 
   if (wiData.signId) {
-    var sign = null;
-    for (var si = 0; si < TRAFFIC_SIGNS.length; si++) {
+    let sign = null;
+    for (let si = 0; si < TRAFFIC_SIGNS.length; si++) {
       if (TRAFFIC_SIGNS[si].id === wiData.signId) { sign = TRAFFIC_SIGNS[si]; break; }
     }
     if (sign) {
-      // 使用原题选项（从 data.js 查找其他标志名称），确保用户错误答案在列表中
-      var allNames = [];
-      for (var ai = 0; ai < TRAFFIC_SIGNS.length; ai++) {
+      const allNames = [];
+      for (let ai = 0; ai < TRAFFIC_SIGNS.length; ai++) {
         if (TRAFFIC_SIGNS[ai].id !== sign.id) allNames.push(TRAFFIC_SIGNS[ai].name);
       }
-      var shuffledNames = shuffle(allNames);
-      var opts = shuffle([
+      const shuffledNames = shuffle(allNames);
+      const opts = shuffle([
         { name: sign.name, isCorrect: true },
         { name: shuffledNames[0], isCorrect: false },
         { name: shuffledNames[1], isCorrect: false },
         { name: shuffledNames[2], isCorrect: false }
       ]);
-      // 确保用户错误答案在列表中
       if (wiData.userAnswer && !opts.some(function(o) { return o.name === wiData.userAnswer; })) {
         opts[3] = { name: wiData.userAnswer, isCorrect: false };
       }
-      var signImg = sign.img
-        ? '<img src="' + sign.img + '" alt="" style="max-width:70px;max-height:80px;">'
+      const signImg = sign.img
+        ? '<img src="' + sign.img + '" alt="' + sign.name + '" style="max-width:70px;max-height:80px;"'
+          + ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"'
+          + '><div class="img-error-fallback" style="display:none;width:70px;height:80px;">' + (sign.svg || '🖼') + '</div>'
         : (sign.svg || "");
       qCard =
         '<div class="quiz-question-card" style="box-shadow:none;border:1px solid var(--border-light);">' +
           '<div class="quiz-sign-img">' + signImg + '</div>' +
           '<p class="quiz-hint">这是什么交通标志？</p>' +
           '<div class="quiz-options">';
-      for (var oi = 0; oi < opts.length; oi++) {
-        var oc = "quiz-option disabled";
+      for (let oi = 0; oi < opts.length; oi++) {
+        let oc = "quiz-option disabled";
         if (opts[oi].isCorrect) oc += " show-correct";
         if (!opts[oi].isCorrect && opts[oi].name === wiData.userAnswer) oc += " wrong";
         qCard += '<button class="' + oc + '">' + opts[oi].name + '</button>';
@@ -667,12 +669,12 @@ function renderExpandedWrong(wi) {
         '</div></div>';
     }
   } else if (wiData.knowledgeId) {
-    var kq = null;
-    for (var ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
+    let kq = null;
+    for (let ki = 0; ki < KNOWLEDGE_QUESTIONS.length; ki++) {
       if (KNOWLEDGE_QUESTIONS[ki].id === wiData.knowledgeId) { kq = KNOWLEDGE_QUESTIONS[ki]; break; }
     }
     if (kq) {
-      var kqImg = (kq.type === "image" && kq.image)
+      const kqImg = (kq.type === "image" && kq.image)
         ? '<div class="quiz-sign-img" style="min-height:auto;margin-bottom:8px;">' + kq.image + '</div>'
         : "";
       qCard =
@@ -680,8 +682,8 @@ function renderExpandedWrong(wi) {
           kqImg +
           '<p class="quiz-hint">' + kq.question + '</p>' +
           '<div class="quiz-options">';
-      for (var oi2 = 0; oi2 < kq.options.length; oi2++) {
-        var oc2 = "quiz-option disabled";
+      for (let oi2 = 0; oi2 < kq.options.length; oi2++) {
+        let oc2 = "quiz-option disabled";
         if (oi2 === kq.answer) oc2 += " show-correct";
         if (oi2 !== kq.answer && kq.options[oi2] === wiData.userAnswer) oc2 += " wrong";
         qCard += '<button class="' + oc2 + '">' + kq.options[oi2] + '</button>';
@@ -696,11 +698,10 @@ function renderExpandedWrong(wi) {
     }
   }
 
-  // 隐藏所有折叠卡片
-  var collapsed = document.querySelectorAll(".hd-wrong-collapsed");
-  for (var c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "none"; }
+  const collapsed = document.querySelectorAll(".hd-wrong-collapsed");
+  for (let c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "none"; }
 
-  var zone = document.getElementById("hdExpandedZone");
+  const zone = document.getElementById("hdExpandedZone");
   zone.style.display = "block";
   zone.innerHTML =
     '<div class="hd-expanded-card" id="hdExpandedCard">' +
@@ -714,12 +715,11 @@ function renderExpandedWrong(wi) {
     '</div>';
   zone.scrollIntoView({ behavior: "smooth" });
 
-  // 滑动绑定在 zone 上（覆盖整个展开区域）
   setupHdSwipe();
 }
 
 function navigateWrong(delta) {
-  var newIdx = _hdState.wrongIndex + delta;
+  const newIdx = _hdState.wrongIndex + delta;
   if (newIdx < 0 || newIdx >= _hdState.total) return;
   _hdState.wrongIndex = newIdx;
   renderExpandedWrong(newIdx);
@@ -727,24 +727,24 @@ function navigateWrong(delta) {
 
 function closeWrongExpand() {
   _hdState = { historyIndex: null, wrongIndex: 0, total: 0 };
-  var zone = document.getElementById("hdExpandedZone");
+  const zone = document.getElementById("hdExpandedZone");
   if (zone) zone.style.display = "none";
-  var collapsed = document.querySelectorAll(".hd-wrong-collapsed");
-  for (var c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "block"; }
+  const collapsed = document.querySelectorAll(".hd-wrong-collapsed");
+  for (let c = 0; c < collapsed.length; c++) { collapsed[c].style.display = "block"; }
 }
 
-var _hdSwipeX = 0, _hdSwipeY = 0;
+let _hdSwipeX = 0, _hdSwipeY = 0;
 function _hdSwipeStart(e) { _hdSwipeX = e.touches[0].clientX; _hdSwipeY = e.touches[0].clientY; }
 function _hdSwipeEnd(e) {
-  var dx = e.changedTouches[0].clientX - _hdSwipeX;
-  var dy = e.changedTouches[0].clientY - _hdSwipeY;
+  const dx = e.changedTouches[0].clientX - _hdSwipeX;
+  const dy = e.changedTouches[0].clientY - _hdSwipeY;
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
     if (dx < -30) navigateWrong(1);
     else if (dx > 30) navigateWrong(-1);
   }
 }
 function setupHdSwipe() {
-  var zone = document.getElementById("hdExpandedZone");
+  const zone = document.getElementById("hdExpandedZone");
   if (!zone) return;
   zone.removeEventListener("touchstart", _hdSwipeStart);
   zone.removeEventListener("touchend", _hdSwipeEnd);
@@ -765,24 +765,24 @@ function exitQuiz() {
   if (quizState.currentIndex > 0) {
     saveQuizState();
   }
-  if (confirm('确定要退出本次答题吗？' + (quizState.currentIndex > 0 ? '进度已保存，下次可继续。' : ''))) {
+  showConfirm('退出答题', '确定要退出本次答题吗？' + (quizState.currentIndex > 0 ? '进度已保存，下次可继续。' : ''), '退出', '继续答题', function () {
     renderQuizIntro();
     window.scrollTo(0, 0);
-  }
+  });
 }
 
 // ========== 刷错题模式 ==========
 
 function generateWrongQuiz() {
-  var imgList = getWrongList("image");
-  var compList = getWrongList("comprehensive");
-  var all = imgList.concat(compList);
+  const imgList = getWrongList("image");
+  const compList = getWrongList("comprehensive");
+  const all = imgList.concat(compList);
 
   // 按 signId/knowledgeId 去重，保留最高 wrongCount
-  var deduped = {};
-  for (var i = 0; i < all.length; i++) {
-    var item = all[i];
-    var key = item.type === "sign"
+  const deduped = {};
+  for (let i = 0; i < all.length; i++) {
+    const item = all[i];
+    const key = item.type === "sign"
       ? ("sign_" + item.signId)
       : ("knowledge_" + item.knowledgeId);
     if (!deduped[key] || item.wrongCount > (deduped[key].wrongCount || 1)) {
@@ -790,26 +790,23 @@ function generateWrongQuiz() {
     }
   }
 
-  var uniqueItems = [];
-  for (var k in deduped) {
-    if (deduped.hasOwnProperty(k)) uniqueItems.push(deduped[k]);
-  }
+  const uniqueItems = Object.keys(deduped).map(function(k) { return deduped[k]; });
 
   // 最多 20 题
-  var picked = shuffle(uniqueItems).slice(0, 20);
-  var questions = [];
+  const picked = shuffle(uniqueItems).slice(0, 20);
+  const questions = [];
 
-  var signIdMap = {};
-  for (var s = 0; s < TRAFFIC_SIGNS.length; s++) {
+  const signIdMap = {};
+  for (let s = 0; s < TRAFFIC_SIGNS.length; s++) {
     signIdMap[TRAFFIC_SIGNS[s].id] = TRAFFIC_SIGNS[s];
   }
-  var knowledgeIdMap = {};
-  for (var q = 0; q < KNOWLEDGE_QUESTIONS.length; q++) {
+  const knowledgeIdMap = {};
+  for (let q = 0; q < KNOWLEDGE_QUESTIONS.length; q++) {
     knowledgeIdMap[KNOWLEDGE_QUESTIONS[q].id] = KNOWLEDGE_QUESTIONS[q];
   }
 
-  for (var p = 0; p < picked.length; p++) {
-    var item = picked[p];
+  for (let p = 0; p < picked.length; p++) {
+    const item = picked[p];
     if (item.type === "sign" && signIdMap[item.signId]) {
       questions.push(generateSignQuestion(signIdMap[item.signId]));
     } else if (item.type === "knowledge" && knowledgeIdMap[item.knowledgeId]) {
@@ -821,17 +818,26 @@ function generateWrongQuiz() {
 }
 
 function startWrongQuiz() {
-  var allWrong = getWrongList("image").concat(getWrongList("comprehensive"));
+  const allWrong = getWrongList("image").concat(getWrongList("comprehensive"));
   if (allWrong.length === 0) {
-    alert("暂无错题记录，先去刷题吧！");
+    showToast('暂无错题记录，先去刷题吧！');
     return;
   }
-  // 检查是否有未完成进度
-  var savedState = getSavedQuizState("wrong");
+  const savedState = getSavedQuizState("wrong");
   if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
-    if (!confirm("错题复习有一场未完成的考试，是否重新开始？之前的进度将丢失。")) return;
-    clearQuizState("wrong");
+    const state = savedState;
+    showConfirm('未完成的考试',
+      '错题复习有一场未完成的考试（已答 ' + state.currentIndex + ' 题），是否重新开始？之前的进度将丢失。',
+      '重新开始', '取消', function () {
+        clearQuizState("wrong");
+        startWrongQuizInternal();
+      });
+    return;
   }
+  startWrongQuizInternal();
+}
+
+function startWrongQuizInternal() {
   QUIZ_MODE = "wrong";
   quizState.mode = "wrong";
   quizState.questions = generateWrongQuiz();
@@ -843,13 +849,22 @@ function startWrongQuiz() {
 }
 
 function startQuiz(mode) {
-  // 检查该模式是否有未完成进度
-  var savedState = getSavedQuizState(mode);
+  const savedState = getSavedQuizState(mode);
   if (savedState && savedState.questionData && savedState.currentIndex < savedState.questionData.length) {
-    var modeLabel = mode === "comprehensive" ? "综合知识" : "图片标识";
-    if (!confirm(modeLabel + "有一场未完成的考试，是否重新开始？之前的进度将丢失。")) return;
-    clearQuizState(mode);
+    const modeLabel = mode === "comprehensive" ? "综合知识" : "图片标识";
+    const state = savedState;
+    showConfirm('未完成的考试',
+      modeLabel + '有一场未完成的考试（已答 ' + state.currentIndex + ' 题），是否重新开始？之前的进度将丢失。',
+      '重新开始', '取消', function () {
+        clearQuizState(mode);
+        startQuizInternal(mode);
+      });
+    return;
   }
+  startQuizInternal(mode);
+}
+
+function startQuizInternal(mode) {
   QUIZ_MODE = mode;
   quizState.mode = mode;
 
@@ -876,40 +891,40 @@ function renderQuestion() {
 
   saveQuizState();
 
-  var q = quizState.questions[quizState.currentIndex];
-  var total = quizState.questions.length;
-  var idx = quizState.currentIndex + 1;
-  var progressPercent = (quizState.currentIndex / total) * 100;
+  const q = quizState.questions[quizState.currentIndex];
+  const total = quizState.questions.length;
+  const idx = quizState.currentIndex + 1;
+  const progressPercent = (quizState.currentIndex / total) * 100;
 
-  var questionMedia = "";
-  var questionText = "";
-  var categoryLabel = "";
+  let questionMedia = "";
+  let questionText = "";
+  let categoryLabel = "";
 
   if (q.type === "sign") {
-    // 标志识别题 — 显示图片
     questionMedia = q.sign.img
-      ? '<img src="' + q.sign.img + '" alt="" style="max-width:160px;max-height:120px;">'
+      ? '<img src="' + q.sign.img + '" alt="' + q.sign.name + '" style="max-width:160px;max-height:120px;"'
+        + ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"'
+        + '><div class="img-error-fallback" style="display:none;width:160px;height:120px;">' + (q.sign.svg || '🖼') + '</div>'
       : q.sign.svg;
     questionText = "这是什么交通标志？";
-    var cat = CATEGORIES[q.sign.category];
+    const cat = CATEGORIES[q.sign.category];
     categoryLabel = cat ? (cat.icon + " " + cat.name) : "";
   } else if (q.type === "knowledge") {
-    // 知识题 — 可能有图片（交警手势）
-    var kq = q.question;
+    const kq = q.question;
     if (kq.type === "image" && kq.image) {
       questionMedia = '<div class="quiz-sign-img" style="min-height:auto;margin-bottom:10px;">' + kq.image + '</div>';
     }
     questionText = kq.question;
-    var kcat = KNOWLEDGE_CATEGORIES[kq.category];
+    const kcat = KNOWLEDGE_CATEGORIES[kq.category];
     categoryLabel = kcat ? (kcat.icon + " " + kcat.name) : "";
   }
 
-  var html =
+  let html =
     '<div class="quiz-top-bar">' +
       '<button class="quiz-back-btn" onclick="exitQuiz()">← 返回</button>' +
       '<span class="quiz-mode-badge">' + (quizState.mode === 'comprehensive' ? '📚 综合知识' : (quizState.mode === 'wrong' ? '🔄 错题复习' : '🚫 图片标识')) + '</span>' +
     '</div>' +
-    '<div class="quiz-progress">' +
+    '<div class="quiz-progress" role="progressbar" aria-valuenow="' + quizState.currentIndex + '" aria-valuemin="0" aria-valuemax="' + total + '" aria-label="答题进度">' +
       '<div class="progress-bar"><div class="progress-fill" style="width:' + progressPercent + '%"></div></div>' +
       '<span class="progress-text">' + idx + '/' + total + '</span>' +
     '</div>';
@@ -922,20 +937,23 @@ function renderQuestion() {
     '<div class="quiz-question-card">' +
       (questionMedia ? '<div class="quiz-sign-img">' + questionMedia + '</div>' : '') +
       '<p class="quiz-hint">' + questionText + '</p>' +
-      '<div class="quiz-options" id="quizOptions">';
+      '<div class="quiz-options" id="quizOptions" role="radiogroup" aria-label="选项">';
 
-  var isAnswered = q.answered;
+  const isAnswered = q.answered;
 
-  for (var i = 0; i < q.options.length; i++) {
-    var optClass = "quiz-option";
+  for (let i = 0; i < q.options.length; i++) {
+    let optClass = "quiz-option";
     if (isAnswered) {
       optClass += " disabled";
       if (q.options[i].isCorrect) optClass += " show-correct";
       if (q.userAnswer && q.options[i].name === q.userAnswer.name && !q.options[i].isCorrect) optClass += " wrong";
     }
     html +=
-      '<button class="' + optClass + '" data-idx="' + i + '"' +
-      (isAnswered ? '' : ' onclick="selectAnswer(' + i + ')"') + '>' +
+      '<button class="' + optClass + '" data-idx="' + i + '" role="radio"'
+      + ' aria-checked="' + (q.userAnswer && q.userAnswer.name === q.options[i].name ? 'true' : 'false') + '"'
+      + (isAnswered ? ' aria-disabled="true"' : '') +
+      (isAnswered ? '' : ' onclick="selectAnswer(' + i + ')"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();selectAnswer(' + i + ');}"') + '>' +
         q.options[i].name +
       '</button>';
   }
@@ -944,8 +962,8 @@ function renderQuestion() {
 
   // 已回答的题显示解释
   if (isAnswered && q.userAnswer) {
-    var wasCorrect = q.userAnswer.isCorrect;
-    var exp = q.type === "sign" ? q.sign.description : (q.question ? q.question.explanation : "");
+    const wasCorrect = q.userAnswer.isCorrect;
+    const exp = q.type === "sign" ? q.sign.description : (q.question ? q.question.explanation : "");
     if (exp) {
       html +=
         '<div class="quiz-explanation-card ' + (wasCorrect ? 'correct-exp' : 'wrong-exp') + '">' +
@@ -959,7 +977,6 @@ function renderQuestion() {
 
   document.getElementById("quizContainer").innerHTML = html;
 
-  // 已回答的题渲染导航栏（不倒计时）
   if (isAnswered) {
     setTimeout(function () { renderNavForAnswered(); }, 50);
   }
@@ -967,34 +984,39 @@ function renderQuestion() {
 
 // ========== 选择答案 ==========
 
-var _autoTimer = null;       // 自动跳转计时器
-var _countdownInterval = null; // 倒计时更新
+let _autoTimer = null;
+let _countdownInterval = null;
 
 function selectAnswer(idx) {
-  var q = quizState.questions[quizState.currentIndex];
+  const q = quizState.questions[quizState.currentIndex];
   if (q.answered) return;
   q.answered = true;
   clearAutoAdvance();
 
-  var chosen = q.options[idx];
+  const chosen = q.options[idx];
   q.userAnswer = chosen;
-  var buttons = document.querySelectorAll("#quizOptions .quiz-option");
+  const buttons = document.querySelectorAll("#quizOptions .quiz-option");
 
-  for (var i = 0; i < buttons.length; i++) {
+  for (let i = 0; i < buttons.length; i++) {
     buttons[i].classList.add("disabled");
+    buttons[i].setAttribute("aria-disabled", "true");
   }
 
-  var isCorrect = chosen.isCorrect;
+  const isCorrect = chosen.isCorrect;
 
   if (isCorrect) {
     quizState.correctCount++;
     buttons[idx].classList.add("correct");
+    // Haptic feedback for correct answer
+    if (navigator.vibrate) navigator.vibrate(50);
   } else {
     quizState.wrongCount++;
     buttons[idx].classList.add("wrong");
     addWrongAnswer(q);
+    // Haptic feedback for wrong answer
+    if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
 
-    for (var j = 0; j < q.options.length; j++) {
+    for (let j = 0; j < q.options.length; j++) {
       if (q.options[j].isCorrect) {
         buttons[j].classList.add("show-correct");
         break;
@@ -1002,105 +1024,91 @@ function selectAnswer(idx) {
     }
   }
 
-  // 获取解释文本
-  var explanation = "";
+  let explanation = "";
   if (q.type === "sign") {
     explanation = q.sign.description;
   } else if (q.type === "knowledge" && q.question.explanation) {
     explanation = q.question.explanation;
   }
 
-  // 显示知识点卡片 + 导航栏
   showPostAnswer(isCorrect, explanation);
 
   saveQuizState();
 
-  // 最后一题不自动跳，等用户点交卷
-  var isLast = quizState.currentIndex >= quizState.questions.length - 1;
+  const isLast = quizState.currentIndex >= quizState.questions.length - 1;
   if (!isLast) {
-    var delay = isCorrect ? 2500 : 3500;
+    const delay = isCorrect ? 2500 : 3500;
     startAutoAdvance(delay);
   }
 }
 
+/** Build navigation bar HTML — single source of truth */
+function buildNavBarHTML(isLast, hasPrev, isCorrect) {
+  if (isLast) {
+    return '<div class="quiz-nav-bar">'
+      + '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>'
+      + '<button class="quiz-nav-btn quiz-submit-btn" onclick="renderQuizResult()">📝 交卷</button>'
+      + '</div>';
+  }
+  return '<div class="quiz-nav-bar">'
+    + '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>'
+    + '<span class="quiz-nav-countdown" id="countdownRing">'
+    + '<svg width="36" height="36" class="countdown-svg"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/>'
+    + '<circle cx="18" cy="18" r="15" fill="none" stroke="' + (isCorrect ? '#16a34a' : '#dc2626') + '" stroke-width="3" stroke-dasharray="94.2" stroke-dashoffset="0" id="countdownCircle" transform="rotate(-90 18 18)" style="transition: stroke-dashoffset 0.1s linear"/></svg>'
+    + '</span>'
+    + '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>'
+    + '</div>';
+}
+
 function showPostAnswer(isCorrect, explanation) {
-  var card = document.querySelector(".quiz-question-card");
+  const card = document.querySelector(".quiz-question-card");
   if (!card) return;
 
-  var total = quizState.questions.length;
-  var idx = quizState.currentIndex + 1;
-  var isLast = quizState.currentIndex >= total - 1;
-  var hasPrev = quizState.currentIndex > 0;
+  const total = quizState.questions.length;
+  const isLast = quizState.currentIndex >= total - 1;
+  const hasPrev = quizState.currentIndex > 0;
 
-  var navHtml;
-  if (isLast) {
-    navHtml =
-      '<div class="quiz-nav-bar">' +
-        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-        '<button class="quiz-nav-btn quiz-submit-btn" onclick="renderQuizResult()">📝 交卷</button>' +
-      '</div>';
-  } else {
-    navHtml =
-      '<div class="quiz-nav-bar">' +
-        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-        '<span class="quiz-nav-countdown" id="countdownRing">' +
-          '<svg width="36" height="36" class="countdown-svg"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/><circle cx="18" cy="18" r="15" fill="none" stroke="' + (isCorrect ? '#16a34a' : '#dc2626') + '" stroke-width="3" stroke-dasharray="94.2" stroke-dashoffset="0" id="countdownCircle" transform="rotate(-90 18 18)" style="transition: stroke-dashoffset 0.1s linear"/></svg>' +
-        '</span>' +
-        '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>' +
-      '</div>';
-  }
+  const navHtml = buildNavBarHTML(isLast, hasPrev, isCorrect);
 
-  var expHtml = explanation
-    ? '<div class="quiz-explanation-card ' + (isCorrect ? 'correct-exp' : 'wrong-exp') + '">' +
-        '<div class="exp-header">' + (isCorrect ? '✓ 回答正确！' : '✗ 回答错误') + '</div>' +
-        '<div class="exp-body">' + explanation + '</div>' +
-      '</div>'
+  const expHtml = explanation
+    ? '<div class="quiz-explanation-card ' + (isCorrect ? 'correct-exp' : 'wrong-exp') + '">'
+        + '<div class="exp-header">' + (isCorrect ? '✓ 回答正确！' : '✗ 回答错误') + '</div>'
+        + '<div class="exp-body">' + explanation + '</div>'
+      + '</div>'
     : '';
 
   card.innerHTML += expHtml;
 
-  // 导航栏放在卡片外面，固定在底部
-  var container = document.getElementById("quizContainer");
-  var oldNav = document.getElementById("quizNavWrapper");
+  const container = document.getElementById("quizContainer");
+  const oldNav = document.getElementById("quizNavWrapper");
   if (oldNav) oldNav.remove();
-  var navWrapper = document.createElement("div");
+  const navWrapper = document.createElement("div");
   navWrapper.id = "quizNavWrapper";
   navWrapper.innerHTML = navHtml;
   container.appendChild(navWrapper);
 
-  // 绑定滑动手势
   setupSwipe(card);
 }
 
 function renderNavForAnswered() {
-  // 已回答的题也渲染导航栏（不倒计时）
-  var total = quizState.questions.length;
-  var idx = quizState.currentIndex + 1;
-  var isLast = quizState.currentIndex >= total - 1;
-  var hasPrev = quizState.currentIndex > 0;
+  const total = quizState.questions.length;
+  const isLast = quizState.currentIndex >= total - 1;
+  const hasPrev = quizState.currentIndex > 0;
 
-  var navHtml;
-  if (isLast) {
-    navHtml =
-      '<div class="quiz-nav-bar">' +
-        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-        '<button class="quiz-nav-btn quiz-submit-btn" onclick="renderQuizResult()">📝 交卷</button>' +
-      '</div>';
-  } else {
-    navHtml =
-      '<div class="quiz-nav-bar">' +
-        '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>' +
-        '<span class="quiz-nav-countdown" id="countdownRing">' +
-          '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>' +
-        '</span>' +
-        '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>' +
-      '</div>';
-  }
+  const navHtml = isLast
+    ? buildNavBarHTML(true, hasPrev, false)
+    : '<div class="quiz-nav-bar">'
+      + '<button class="quiz-nav-btn' + (hasPrev ? '' : ' disabled') + '" onclick="quizNavPrev()"' + (hasPrev ? '' : ' disabled') + '>◀ 上一题</button>'
+      + '<span class="quiz-nav-countdown" id="countdownRing">'
+      + '<svg width="36" height="36"><circle cx="18" cy="18" r="15" fill="none" stroke="#ddd" stroke-width="3"/></svg>'
+      + '</span>'
+      + '<button class="quiz-nav-btn" onclick="quizNavNext()">下一题 ▶</button>'
+      + '</div>';
 
-  var container = document.getElementById("quizContainer");
-  var oldNav = document.getElementById("quizNavWrapper");
+  const container = document.getElementById("quizContainer");
+  const oldNav = document.getElementById("quizNavWrapper");
   if (oldNav) oldNav.remove();
-  var navWrapper = document.createElement("div");
+  const navWrapper = document.createElement("div");
   navWrapper.id = "quizNavWrapper";
   navWrapper.innerHTML = navHtml;
   container.appendChild(navWrapper);
@@ -1113,16 +1121,16 @@ function clearAutoAdvance() {
 
 function startAutoAdvance(delayMs) {
   clearAutoAdvance();
-  var total = delayMs;
-  var interval = 100; // update every 100ms
-  var elapsed = 0;
+  const total = delayMs;
+  const interval = 100;
+  let elapsed = 0;
 
   _countdownInterval = setInterval(function () {
     elapsed += interval;
-    var pct = elapsed / total;
-    var circle = document.getElementById("countdownCircle");
+    const pct = elapsed / total;
+    const circle = document.getElementById("countdownCircle");
     if (circle) {
-      var circumference = 94.2; // 2*pi*15
+      const circumference = 94.2;
       circle.style.strokeDashoffset = (circumference * pct).toFixed(1);
     }
   }, interval);
@@ -1154,11 +1162,11 @@ function quizNavPrev() {
 
 // ========== 滑动手势 ==========
 
-var _qzSwipeX = 0, _qzSwipeY = 0;
+let _qzSwipeX = 0, _qzSwipeY = 0;
 function _qzSwipeStart(e) { _qzSwipeX = e.touches[0].clientX; _qzSwipeY = e.touches[0].clientY; }
 function _qzSwipeEnd(e) {
-  var dx = e.changedTouches[0].clientX - _qzSwipeX;
-  var dy = e.changedTouches[0].clientY - _qzSwipeY;
+  const dx = e.changedTouches[0].clientX - _qzSwipeX;
+  const dy = e.changedTouches[0].clientY - _qzSwipeY;
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
     clearAutoAdvance();
     if (dx < -40) quizNavNext();
@@ -1176,15 +1184,15 @@ function setupSwipe(card) {
 
 function renderQuizResult() {
   clearQuizState();
-  var totalQuestions = quizState.questions.length;
-  var mode = quizState.mode;
-  var maxScore = totalQuestions * POINTS_PER_QUESTION;
-  var score = quizState.correctCount * POINTS_PER_QUESTION;
-  var wrongCount = quizState.wrongCount;
+  const totalQuestions = quizState.questions.length;
+  const mode = quizState.mode;
+  const maxScore = totalQuestions * POINTS_PER_QUESTION;
+  const score = quizState.correctCount * POINTS_PER_QUESTION;
+  const wrongCount = quizState.wrongCount;
 
-  var wrongItems = [];
-  for (var i = 0; i < quizState.questions.length; i++) {
-    var qq = quizState.questions[i];
+  const wrongItems = [];
+  for (let i = 0; i < quizState.questions.length; i++) {
+    const qq = quizState.questions[i];
     if (qq.userAnswer && !qq.userAnswer.isCorrect) {
       if (qq.type === "sign") {
         wrongItems.push({
@@ -1217,8 +1225,8 @@ function renderQuizResult() {
     wrongItems: wrongItems,
   });
 
-  var pct = Math.round(score / maxScore * 100);
-  var ringColor, ringBg, msg;
+  const pct = Math.round(score / maxScore * 100);
+  let ringColor, ringBg, msg;
   if (pct >= 90) {
     ringColor = "var(--success)";
     ringBg = "var(--success-light)";
@@ -1237,13 +1245,13 @@ function renderQuizResult() {
     msg = "基础比较薄弱，建议先看一遍学习模块再来刷题。";
   }
 
-  var modeLabel = quizState.mode === "comprehensive" ? "综合知识" : (quizState.mode === "wrong" ? "错题复习" : "图片标识");
-  var modeIcon = quizState.mode === "comprehensive" ? "📚" : (quizState.mode === "wrong" ? "🔄" : "🚫");
+  const modeLabel = quizState.mode === "comprehensive" ? "综合知识" : (quizState.mode === "wrong" ? "错题复习" : "图片标识");
+  const modeIcon = quizState.mode === "comprehensive" ? "📚" : (quizState.mode === "wrong" ? "🔄" : "🚫");
 
-  var html =
+  const html =
     '<div class="quiz-result">' +
       '<div class="result-mode-label">' + modeIcon + ' ' + modeLabel + '</div>' +
-      '<div class="result-score-ring" style="background:' + ringBg + ';border:4px solid ' + ringColor + ';color:' + ringColor + ';">' +
+      '<div class="result-score-ring" style="background:' + ringBg + ';border:4px solid ' + ringColor + ';color:' + ringColor + ';" role="img" aria-label="得分 ' + score + ' 分">' +
         '<div class="result-score-number">' + score + '</div>' +
         '<div class="result-score-label">分</div>' +
       '</div>' +
@@ -1275,24 +1283,22 @@ function renderQuizResult() {
 // ========== 渲染错题页面 ==========
 
 function renderWrongPage() {
-  // 合并两个模式的错题
-  var imgList = getWrongList("image");
-  var compList = getWrongList("comprehensive");
-  var list = imgList.concat(compList);
+  const imgList = getWrongList("image");
+  const compList = getWrongList("comprehensive");
+  const list = imgList.concat(compList);
 
-  // 按时间排序
   list.sort(function (a, b) {
     if (a.time > b.time) return -1;
     if (a.time < b.time) return 1;
     return 0;
   });
 
-  var container = document.getElementById("wrongContainer");
+  const container = document.getElementById("wrongContainer");
 
   if (list.length === 0) {
     container.innerHTML =
       '<div class="wrong-empty">' +
-        '<div class="wrong-empty-icon">🎉</div>' +
+        '<div class="wrong-empty-icon" aria-hidden="true">🎉</div>' +
         '<p>暂无错题记录</p>' +
         '<p style="font-size:13px;margin-top:4px">快去刷题吧！</p>' +
       '</div>';
@@ -1300,68 +1306,61 @@ function renderWrongPage() {
   }
 
   // 按类别分组
-  var groups = {};
-  for (var i = 0; i < list.length; i++) {
-    var item = list[i];
-    var gkey = item.category || "other";
+  const groups = {};
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i];
+    const gkey = item.category || "other";
     if (!groups[gkey]) groups[gkey] = [];
     groups[gkey].push(item);
   }
 
   // 类别排序
-  var catOrder = ["warning","prohibition","mandatory","guide","auxiliary",
-                   "hand_signals","road_markings","traffic_lights","right_of_way",
-                   "speed_limits","demerit_points","expressway","penalties","safety"];
-  var sortedKeys = [];
-  for (var c = 0; c < catOrder.length; c++) {
+  const catOrder = ["warning","prohibition","mandatory","guide","auxiliary",
+                     "hand_signals","road_markings","traffic_lights","right_of_way",
+                     "speed_limits","demerit_points","expressway","penalties","safety"];
+  const sortedKeys = [];
+  for (let c = 0; c < catOrder.length; c++) {
     if (groups[catOrder[c]]) sortedKeys.push(catOrder[c]);
   }
-  for (var gkey in groups) {
+  for (const gkey in groups) {
     if (groups.hasOwnProperty(gkey) && sortedKeys.indexOf(gkey) < 0) sortedKeys.push(gkey);
   }
 
-  var html =
+  let html =
     '<div class="wrong-header">' +
       '<span class="wrong-count">共 ' + list.length + ' 道错题</span>' +
-      '<button class="btn-clear" onclick="clearAllWrongAnswers()">清空全部</button>' +
+      '<button class="btn-clear" onclick="clearAllWrongAnswersWithConfirm()">清空全部</button>' +
     '</div>' +
     '<div class="wrong-persistence-note">💡 错题保存在浏览器本地，不清除缓存就不会丢失。关闭浏览器、重启手机均不影响。</div>';
 
   // 分类筛选 tabs
   html += '<div class="wrong-category-tabs" id="wrongCategoryTabs">';
   html += '<button class="wrong-cat-tab active" onclick="filterWrongCategory(\'all\')">全部 (' + list.length + ')</button>';
-  for (var g = 0; g < sortedKeys.length; g++) {
-    var gkey = sortedKeys[g];
-    var items = groups[gkey];
-    var gname2 = gkey;
-    var gicon2 = "";
-    if (CATEGORIES[gkey]) { gname2 = CATEGORIES[gkey].name; gicon2 = CATEGORIES[gkey].icon; }
-    else if (KNOWLEDGE_CATEGORIES[gkey]) { gname2 = KNOWLEDGE_CATEGORIES[gkey].name; gicon2 = KNOWLEDGE_CATEGORIES[gkey].icon; }
-    html += '<button class="wrong-cat-tab" onclick="filterWrongCategory(\'' + gkey + '\')">' + gicon2 + ' ' + gname2 + ' (' + items.length + ')</button>';
+  for (let g = 0; g < sortedKeys.length; g++) {
+    const gkey = sortedKeys[g];
+    const items = groups[gkey];
+    const info = getCategoryInfo(gkey);
+    html += '<button class="wrong-cat-tab" onclick="filterWrongCategory(\'' + gkey + '\')">' + info.icon + ' ' + info.name + ' (' + items.length + ')</button>';
   }
   html += '</div>';
   html += '<div class="wrong-list" id="wrongList">';
 
-  for (var g = 0; g < sortedKeys.length; g++) {
-    var gkey = sortedKeys[g];
-    var items = groups[gkey];
-
-    // 获取类别名
-    var gname = gkey;
-    var gicon = "";
-    if (CATEGORIES[gkey]) { gname = CATEGORIES[gkey].name; gicon = CATEGORIES[gkey].icon; }
-    else if (KNOWLEDGE_CATEGORIES[gkey]) { gname = KNOWLEDGE_CATEGORIES[gkey].name; gicon = KNOWLEDGE_CATEGORIES[gkey].icon; }
+  for (let g = 0; g < sortedKeys.length; g++) {
+    const gkey = sortedKeys[g];
+    const items = groups[gkey];
+    const info = getCategoryInfo(gkey);
 
     html += '<div class="wrong-group" data-wrong-cat="' + gkey + '">' +
-      '<div class="wrong-group-title">' + gicon + ' ' + gname + ' <span class="wrong-group-count">' + items.length + '题</span></div>';
+      '<div class="wrong-group-title">' + info.icon + ' ' + info.name + ' <span class="wrong-group-count">' + items.length + '题</span></div>';
 
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var modeLabel = item.mode === "comprehensive" ? "📚 综合" : "🚫 标识";
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
 
       if (item.type === "sign") {
-        var signMedia = item.img
-          ? '<img src="' + item.img + '" alt="" style="max-width:48px;max-height:48px;">'
+        const signMedia = item.img
+          ? '<img src="' + item.img + '" alt="' + (item.name || '') + '" style="max-width:48px;max-height:48px;"'
+            + ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"'
+            + '><div class="img-error-fallback" style="display:none;width:48px;height:48px;">' + (item.svg || '🖼') + '</div>'
           : (item.svg || '');
         html +=
           '<div class="wrong-item">' +
@@ -1376,7 +1375,7 @@ function renderWrongPage() {
             '</div>' +
           '</div>';
       } else if (item.type === "knowledge") {
-        var kqImg = item.handImage || "";
+        const kqImg = item.handImage || "";
         html +=
           '<div class="wrong-item">' +
             '<div class="wrong-item-header">' +
@@ -1399,15 +1398,15 @@ function renderWrongPage() {
 }
 
 function filterWrongCategory(cat) {
-  var tabs = document.querySelectorAll(".wrong-cat-tab");
-  for (var i = 0; i < tabs.length; i++) {
+  const tabs = document.querySelectorAll(".wrong-cat-tab");
+  for (let i = 0; i < tabs.length; i++) {
     tabs[i].classList.remove("active");
     if (tabs[i].textContent.indexOf(cat) === 0 || (cat === "all" && tabs[i].textContent.indexOf("全部") === 0)) {
       tabs[i].classList.add("active");
     }
   }
-  var groups = document.querySelectorAll(".wrong-group");
-  for (var j = 0; j < groups.length; j++) {
+  const groups = document.querySelectorAll(".wrong-group");
+  for (let j = 0; j < groups.length; j++) {
     if (cat === "all" || groups[j].getAttribute("data-wrong-cat") === cat) {
       groups[j].style.display = "block";
     } else {

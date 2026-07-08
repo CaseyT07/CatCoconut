@@ -67,7 +67,56 @@ button {
   cursor: pointer;
   background: none;
   font-size: inherit;
-  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   Accessibility: Focus & Skip Link
+   ============================================ */
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  z-index: 300;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================
+   Prefers Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ============================================
@@ -597,16 +646,6 @@ button {
   object-fit: contain;
   max-width: 100%;
   max-height: 140px;
-}
-.wrong-item-img img {
-  max-width: 48px;
-  max-height: 48px;
-  object-fit: contain;
-}
-.history-detail-page img {
-  max-width: 70px !important;
-  max-height: 80px !important;
-  object-fit: contain;
 }
 
 .quiz-hint {
@@ -1227,6 +1266,11 @@ button {
   max-height: 48px;
   object-fit: contain;
 }
+.wrong-item-img .img-error-fallback,
+.history-detail-page .img-error-fallback {
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+}
 
 .hd-stat span {
   font-weight: 700;
@@ -1576,4 +1620,206 @@ button {
   .tab-bar {
     max-width: 800px;
   }
+}
+
+/* ============================================
+   Dark Mode
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #3b82f6;
+    --primary-light: #1e3a5f;
+    --primary-dark: #93c5fd;
+    --primary-rgb: 59, 130, 246;
+    --success: #22c55e;
+    --success-light: #14532d;
+    --success-rgb: 34, 197, 94;
+    --danger: #ef4444;
+    --danger-light: #450a0a;
+    --danger-rgb: 239, 68, 68;
+    --warning: #f59e0b;
+    --warning-light: #422006;
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --text: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #334155;
+    --border-light: #1e293b;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .modal-sign-tip { color: #fde68a; }
+  .quiz-explanation-card.correct-exp { color: #bbf7d0; }
+  .quiz-explanation-card.wrong-exp { color: #fecaca; }
+  .quiz-option.show-correct { color: #22c55e; }
+  .quiz-option.wrong { color: #ef4444; }
+  .wrong-item-correct { color: #4ade80; }
+  .wrong-item-user { color: #f87171; }
+  .wrong-count-badge { background: #450a0a; color: #fca5a5; }
+}
+
+/* ============================================
+   Loading Skeleton
+   ============================================ */
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, var(--border-light) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.sign-img.loading {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 8px;
+}
+
+.sign-img.loading img {
+  display: none;
+}
+
+.sign-img img.loaded {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Search clear button */
+.search-clear-btn {
+  padding: 4px 10px;
+  font-size: 16px;
+  color: var(--text-muted);
+  border-radius: 50%;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.search-clear-btn:hover {
+  background: var(--border-light);
+  color: var(--text);
+}
+
+/* Image error fallback */
+.img-error-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border-light);
+  color: var(--text-muted);
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+}
+
+/* Toast notification */
+.toast-container {
+  position: fixed;
+  bottom: calc(var(--tab-height) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards;
+  pointer-events: auto;
+  text-align: center;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-16px); }
+}
+
+/* Confirmation dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-dialog {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  animation: modalSlideUp 0.25s ease;
+}
+
+.confirm-dialog-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.confirm-dialog h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.confirm-dialog p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-dialog-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.confirm-btn-cancel {
+  background: var(--border-light);
+  color: var(--text-secondary);
+}
+
+.confirm-btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.confirm-btn-primary {
+  background: var(--primary);
+  color: #fff;
 }
