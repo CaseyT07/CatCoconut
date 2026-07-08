@@ -203,7 +203,8 @@ function renderKnowledgePage() {
   const query = (currentSearch || "").trim().toLowerCase();
 
   // Group points by category
-  const catKeys = Object.keys(KNOWLEDGE_CATEGORIES);
+  // Skip hand_signals — gestures are learned via sign images in Learn mode
+  const catKeys = Object.keys(KNOWLEDGE_CATEGORIES).filter(function (k) { return k !== 'hand_signals'; });
   const grouped = {};
   for (let i = 0; i < catKeys.length; i++) {
     const key = catKeys[i];
