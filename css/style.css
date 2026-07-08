@@ -1157,21 +1157,25 @@ button {
   gap: 4px;
 }
 
-/* 展开区 */
+/* 展开区 + 底部固定导航 */
+.hd-expanded-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--card-bg);
+  position: sticky;
+  bottom: var(--tab-height);
+  z-index: 50;
+}
+
 .hd-expanded-card {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
   padding: 16px;
   box-shadow: var(--shadow-md);
-}
-
-.hd-expanded-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
 }
 
 .hd-nav-btn {

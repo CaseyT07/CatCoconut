@@ -700,17 +700,17 @@ function renderExpandedWrong(wi) {
   zone.style.display = "block";
   zone.innerHTML =
     '<div class="hd-expanded-card" id="hdExpandedCard">' +
-      '<div class="hd-expanded-nav">' +
-        '<button class="hd-nav-btn" ' + (isFirst ? 'disabled' : '') + ' onclick="navigateWrong(-1)">◀ 上一题</button>' +
-        '<span class="hd-nav-pos">' + (wi + 1) + ' / ' + _hdState.total + '</span>' +
-        '<button class="hd-nav-btn" ' + (isLast ? 'disabled' : '') + ' onclick="navigateWrong(1)">下一题 ▶</button>' +
-      '</div>' +
       qCard +
       '<button class="hd-close-btn" onclick="closeWrongExpand()">收起 ▲</button>' +
+    '</div>' +
+    '<div class="hd-expanded-nav" id="hdExpandedNav">' +
+      '<button class="hd-nav-btn" ' + (isFirst ? 'disabled' : '') + ' onclick="navigateWrong(-1)">◀ 上一题</button>' +
+      '<span class="hd-nav-pos">' + (wi + 1) + ' / ' + _hdState.total + '</span>' +
+      '<button class="hd-nav-btn" ' + (isLast ? 'disabled' : '') + ' onclick="navigateWrong(1)">下一题 ▶</button>' +
     '</div>';
   zone.scrollIntoView({ behavior: "smooth" });
 
-  // 绑定滑动
+  // 滑动绑定在 zone 上（覆盖整个展开区域）
   setupHdSwipe();
 }
 
@@ -740,12 +740,12 @@ function _hdSwipeEnd(e) {
   }
 }
 function setupHdSwipe() {
-  var card = document.getElementById("hdExpandedCard");
-  if (!card) return;
-  card.removeEventListener("touchstart", _hdSwipeStart);
-  card.removeEventListener("touchend", _hdSwipeEnd);
-  card.addEventListener("touchstart", _hdSwipeStart);
-  card.addEventListener("touchend", _hdSwipeEnd);
+  var zone = document.getElementById("hdExpandedZone");
+  if (!zone) return;
+  zone.removeEventListener("touchstart", _hdSwipeStart);
+  zone.removeEventListener("touchend", _hdSwipeEnd);
+  zone.addEventListener("touchstart", _hdSwipeStart);
+  zone.addEventListener("touchend", _hdSwipeEnd);
 }
 
 function clearQuizHistory() {
