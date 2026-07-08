@@ -195,20 +195,20 @@ function renderKnowledgePage() {
   const container = document.getElementById("knowledgeList");
   if (!container) return;
 
-  if (typeof KNOWLEDGE_CATEGORIES === 'undefined' || typeof KNOWLEDGE_QUESTIONS === 'undefined') {
+  if (typeof KNOWLEDGE_CATEGORIES === 'undefined' || typeof KNOWLEDGE_POINTS === 'undefined') {
     container.innerHTML = '<div class="no-results">知识库加载失败，请刷新页面重试</div>';
     return;
   }
 
   const query = (currentSearch || "").trim().toLowerCase();
 
-  // Group questions by category
+  // Group points by category
   const catKeys = Object.keys(KNOWLEDGE_CATEGORIES);
   const grouped = {};
   for (let i = 0; i < catKeys.length; i++) {
     const key = catKeys[i];
-    grouped[key] = KNOWLEDGE_QUESTIONS.filter(function (q) {
-      return q.category === key;
+    grouped[key] = KNOWLEDGE_POINTS.filter(function (p) {
+      return p.category === key;
     });
   }
 
@@ -217,20 +217,18 @@ function renderKnowledgePage() {
   for (let c = 0; c < catKeys.length; c++) {
     const key = catKeys[c];
     const cat = KNOWLEDGE_CATEGORIES[key];
-    const questions = grouped[key] || [];
+    const points = grouped[key] || [];
 
     // Filter by search
-    let filteredQuestions = questions;
+    let filtered = points;
     if (query) {
-      filteredQuestions = questions.filter(function (q) {
-        const matchQ = q.question.toLowerCase().indexOf(query) !== -1;
-        const matchExp = q.explanation ? q.explanation.toLowerCase().indexOf(query) !== -1 : false;
-        const matchOpt = q.options.some(function (o) { return o.toLowerCase().indexOf(query) !== -1; });
-        return matchQ || matchExp || matchOpt;
+      filtered = points.filter(function (p) {
+        return p.title.toLowerCase().indexOf(query) !== -1
+          || p.detail.toLowerCase().indexOf(query) !== -1;
       });
     }
 
-    if (filteredQuestions.length === 0 && query) continue;
+    if (filtered.length === 0 && query) continue;
 
     html +=
       '<div class="knowledge-category-card" onclick="toggleKnowledgeCard(this)" tabindex="0" role="button"'
@@ -239,17 +237,17 @@ function renderKnowledgePage() {
       + '<div class="knowledge-cat-header">'
       + '<span class="knowledge-cat-icon" aria-hidden="true">' + cat.icon + '</span>'
       + '<span class="knowledge-cat-name">' + cat.name + '</span>'
-      + '<span class="knowledge-cat-count">' + filteredQuestions.length + '条</span>'
+      + '<span class="knowledge-cat-count">' + filtered.length + '条</span>'
       + '<span class="knowledge-cat-arrow" aria-hidden="true">▼</span>'
       + '</div>'
       + '<div class="knowledge-points">';
 
-    for (let p = 0; p < filteredQuestions.length; p++) {
-      const q = filteredQuestions[p];
+    for (let p = 0; p < filtered.length; p++) {
+      const point = filtered[p];
       html +=
         '<div class="knowledge-point">'
-        + '<div class="knowledge-point-title">' + q.question + '</div>'
-        + '<div class="knowledge-point-detail">' + q.explanation + '</div>'
+        + '<div class="knowledge-point-title">' + point.title + '</div>'
+        + '<div class="knowledge-point-detail">' + point.detail + '</div>'
         + '</div>';
     }
 
