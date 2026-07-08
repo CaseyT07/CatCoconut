@@ -149,6 +149,9 @@ function saveQuizState() {
     state.questionData.push({
       signId: q.sign ? q.sign.id : null,
       knowledgeId: q.question ? q.question.id : null,
+      answered: q.answered || false,
+      userAnswerCorrect: q.userAnswer ? q.userAnswer.isCorrect : null,
+      userAnswerName: q.userAnswer ? q.userAnswer.name : null,
     });
   }
   try {
@@ -320,17 +323,24 @@ function restoreQuiz(savedState) {
   var questions = [];
   for (var k = 0; k < savedState.questionData.length; k++) {
     var qd = savedState.questionData[k];
+    var q;
     if (qd.signId) {
       var sign = idMap[qd.signId];
       if (!sign) return null;
-      questions.push(generateSignQuestion(sign));
+      q = generateSignQuestion(sign);
     } else if (qd.knowledgeId) {
       var kq = knowledgeMap[qd.knowledgeId];
       if (!kq) return null;
-      questions.push(generateKnowledgeQuestion(kq));
+      q = generateKnowledgeQuestion(kq);
     } else {
       return null;
     }
+    // 恢复已回答状态
+    if (qd.answered) {
+      q.answered = true;
+      q.userAnswer = { isCorrect: !!qd.userAnswerCorrect, name: qd.userAnswerName || "" };
+    }
+    questions.push(q);
   }
 
   quizState.mode = savedState.mode;

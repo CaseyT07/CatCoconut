@@ -14,20 +14,16 @@ const KNOWLEDGE_CATEGORIES = {
   safety:        { id: "safety",        name: "🛟 安全常识", icon: "🛟" },
 };
 
-// 手势图片：
-// 当前用 emoji 占位。下载真实图片存到 img/knowledge/hand_signals/ 后自动显示
-// 下载清单见 img/knowledge/hand_signals/DOWNLOAD_LIST.txt
-// 图片就位后把下面 HAND_SIGNAL_SVGS 改为 <img src="..."> 即可
-
+// 手势图片：已替换为真实照片
 const HAND_SIGNAL_SVGS = {
-  stop:            '<div style="font-size:56px;text-align:center;">🛑</div><div style="font-size:12px;color:#888;">停止信号</div>',
-  straight:        '<div style="font-size:56px;text-align:center;">⬆️</div><div style="font-size:12px;color:#888;">直行信号</div>',
-  left_turn:       '<div style="font-size:56px;text-align:center;">⬅️</div><div style="font-size:12px;color:#888;">左转弯信号</div>',
-  right_turn:      '<div style="font-size:56px;text-align:center;">➡️</div><div style="font-size:12px;color:#888;">右转弯信号</div>',
-  change_lane:     '<div style="font-size:56px;text-align:center;">↔️</div><div style="font-size:12px;color:#888;">变道信号</div>',
-  slow_down:       '<div style="font-size:56px;text-align:center;">🔻</div><div style="font-size:12px;color:#888;">减速慢行信号</div>',
-  pull_over:       '<div style="font-size:56px;text-align:center;">🅿️</div><div style="font-size:12px;color:#888;">靠边停车信号</div>',
-  left_turn_wait:  '<div style="font-size:56px;text-align:center;">↖️</div><div style="font-size:12px;color:#888;">左转弯待转信号</div>',
+  stop:            '<img src="img/knowledge/hand_signals/stop.png" style="max-width:120px;max-height:160px;" alt="停止信号">',
+  straight:        '<img src="img/knowledge/hand_signals/straight.png" style="max-width:120px;max-height:160px;" alt="直行信号">',
+  left_turn:       '<img src="img/knowledge/hand_signals/left_turn.png" style="max-width:120px;max-height:160px;" alt="左转弯信号">',
+  right_turn:      '<img src="img/knowledge/hand_signals/right_turn.png" style="max-width:120px;max-height:160px;" alt="右转弯信号">',
+  change_lane:     '<img src="img/knowledge/hand_signals/change_lane.png" style="max-width:120px;max-height:160px;" alt="变道信号">',
+  slow_down:       '<img src="img/knowledge/hand_signals/slow_down.png" style="max-width:120px;max-height:160px;" alt="减速慢行信号">',
+  pull_over:       '<img src="img/knowledge/hand_signals/pull_over.png" style="max-width:120px;max-height:160px;" alt="靠边停车信号">',
+  left_turn_wait:  '<img src="img/knowledge/hand_signals/left_turn_wait.png" style="max-width:120px;max-height:160px;" alt="左转弯待转信号">',
 };
 
 // 96 questions across 9 categories

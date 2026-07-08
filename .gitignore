@@ -6,6 +6,4 @@ preview.html
 img/signs/raw/
 img/signs/_cropped/
 img/signs/*.bak
-img/微信图片*.jpg
-img/signs/[0-9]*.png
 .DS_Store
